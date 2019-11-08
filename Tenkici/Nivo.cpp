@@ -1,5 +1,6 @@
 #include "Nivo.h"
 
+bool prikazi_cvorove=false;
 
 Plocica::Plocica(float x,float z){
     hodljiv=true;
@@ -25,6 +26,7 @@ void Plocica::postavi(int x,int y,bool vrednost){
     temena[x][y].second=vrednost;
 }
 
+//FUNKCIJA KOJA CRTA PLOCICE I DATE TACKE ZA KRETANJE U SKLADU SA TIPOM PLOCICE
 void Plocica::crtaj(){
     if(tip==ZEMLJA)
     glColor3f(0,0.78,0);
@@ -40,7 +42,7 @@ void Plocica::crtaj(){
     glVertex3f(temena[2][2].first.first,0,temena[2][2].first.second);
     glVertex3f(temena[2][0].first.first,0,temena[2][0].first.second);
     glEnd();
-    if(hodljiv){
+    if(hodljiv && prikazi_cvorove ){
         for(int i=0;i<3;i++)
         for(int j=0;j<3;j++){
             glPointSize(5);
@@ -107,7 +109,7 @@ void Nivo::crtaj_teren(){
     for(int j=0;j<n;j++)
     teren[i][j]->crtaj();
 }
-
+//FUNKCIJA ZA ODABIR PLOCICE U ODNOSU NA PRESECNE TACKE MISA I TERENA
 void Nivo::izaberi_plocicu(float x,float z,int n2,int tip){
     int x_loc=floor(x)+n/2;
     int z_loc=abs(floor(z)-m/2);
@@ -118,13 +120,16 @@ void Nivo::izaberi_plocicu(float x,float z,int n2,int tip){
     int pocetak_x=x_loc-n2/2;
     int kraj_x=x_loc+n2/2;
 
+//za pronadjednu plocicu i datu sirina obelezava sve plocice oko nje
     for(int i=pocetak_z;i<=kraj_z;i++)
     for(int j=pocetak_x;j<=kraj_x;j++)
     if(i>=0 && i<m && j>=0 &&  j<n)
     teren[i][j]->postavi_tip(tip);  
 }
 
+//FUNKCIJA KOJA RACUNA ZA SVAKU PLOCICU TERENA KUDA JE MOGUCE HODATI
 void Nivo::procesuj(){
+//za svaku plocicu proverava 8 plocica oko nje i postavlja vrednosti odgovarajuce vrednosti
     for(int i =0;i<n;i++)
     for(int j=0;j<m;j++)
     {
@@ -231,4 +236,12 @@ Nivo* Nivo::ucitaj_teren(string path){
 
     citac.close();
     return tekuci;
+}
+
+void Nivo::prikazi_tacke(bool vr){
+    prikazi_cvorove=vr;
+}
+
+bool Nivo::nabavi_prikaz_tacke(){
+    return prikazi_cvorove;
 }

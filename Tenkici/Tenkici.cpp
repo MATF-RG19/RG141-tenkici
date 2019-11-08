@@ -49,6 +49,8 @@ void tastatura(unsigned char taster, int x, int y){
         tekuci_nivo->sacuvaj_teren();
     if(taster=='f')
         tekuci_nivo->procesuj();
+    if(taster=='m')
+        tekuci_nivo->prikazi_tacke(!tekuci_nivo->nabavi_prikaz_tacke());
     if(taster=='p'){
         delete(tekuci_nivo);
         tekuci_nivo=tekuci_nivo->ucitaj_teren("1.nivo");
@@ -58,17 +60,20 @@ void tastatura(unsigned char taster, int x, int y){
 
 }
 
-
+//FUNKCIJA ZA TRAZENJE PRESEKA MISA I TERENA
 void mis(int dugme, int stanje, int x,int y){
     GLdouble farx,fary,farz;
     GLdouble nearx,neary,nearz;
     gluUnProject(x,glutGet(GLUT_WINDOW_HEIGHT)-y,1, m, p, v, &farx, &fary, &farz);
     gluUnProject(x,glutGet(GLUT_WINDOW_HEIGHT)-y,0, m, p, v, &nearx, &neary, &nearz);
 
+    //racunanje preseka misa sa daljom i blizom ravni
+
     float vector_x =farx-nearx;
     float vector_y=fary-neary;
     float vector_z=farz-nearz;
 
+    //racunanje preseka vectora misa sa ravni terena 
     float t=(-cam_pos_y)/(vector_y);
 
     dx=cam_pos_x+t*vector_x;
@@ -105,6 +110,7 @@ void init_GL(){
     glMatrixMode(GL_MODELVIEW);
     
 }
+
 
 void render_func(){
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);

@@ -17,6 +17,8 @@ using namespace std;
 #define VODA 3
 #define DRVO 4
 
+
+//Sadrzi podatak o jednoj plocici njen tip kao i tacke za kretanje po njoj
 class Plocica{
 public:
 
@@ -33,6 +35,7 @@ private:
     int tip;
 };
 
+//Sadrzi podatak o terenu za dati nivo u vidu matrice klasa plocica
 class Nivo{
 public:
 
@@ -44,6 +47,8 @@ public:
     void izaberi_plocicu(float x,float z,int n,int tip);
     void sacuvaj_teren();
     Nivo* ucitaj_teren(string path);
+    void prikazi_tacke(bool vr);
+    bool nabavi_prikaz_tacke();
 
 private:
     vector<vector<Plocica*>> teren;
