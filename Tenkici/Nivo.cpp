@@ -2,6 +2,8 @@
 
 bool prikazi_cvorove=false;
 
+float udaljenost(float x,float y,float x_,float y_);
+
 Plocica::Plocica(float x,float z){
     hodljiv=true;
     tip=ZEMLJA;
@@ -244,4 +246,110 @@ void Nivo::prikazi_tacke(bool vr){
 
 bool Nivo::nabavi_prikaz_tacke(){
     return prikazi_cvorove;
+}
+
+
+//FUNKCIJA ZA TRAZENJE PUTA U OBRADJENOJ MREZI
+vector<pair<float,float>> Nivo::bfs(pair<int,int> lok,pair<int,int> cilj){
+    vector<pair<float,float>> put;
+    vector<vector<pair<int,int>>> roditelj(n);
+    vector<vector<bool>> zauzet(n);
+    bool naso=false;
+    for(int i=0;i<n;i++){
+        roditelj[i].resize(m);
+        zauzet[i].resize(m,false);
+    }
+    roditelj[lok.first][lok.second]=lok;
+    queue<pair<int,int>> red;
+    red.push(lok);
+    while(red.empty()==false){
+        pair<int,int> vrh=red.front();
+        red.pop();
+        if(vrh==cilj){
+            naso=true;
+            break;
+        }
+
+        int i=vrh.first;
+        int j=vrh.second;
+
+
+        if(i+1<n && zauzet[i+1][j]==false && teren[i+1][j]->jel_hodljiv()){
+            zauzet[i+1][j]=true;
+            roditelj[i+1][j]=make_pair(i,j);
+            red.push(make_pair(i+1,j));
+        }
+        if(i-1>=0 && zauzet[i-1][j]==false && teren[i-1][j]->jel_hodljiv()){
+            zauzet[i-1][j]=true;
+            roditelj[i-1][j]=make_pair(i,j);
+            red.push(make_pair(i-1,j));
+        }
+        if(j+1<m && zauzet[i][j+1]==false && teren[i][j+1]->jel_hodljiv()){
+            zauzet[i][j+1]=true;
+            roditelj[i][j+1]=make_pair(i,j);
+            red.push(make_pair(i,j+1));
+        }
+        if(j-1>=0 && zauzet[i][j-1]==false && teren[i][j-1]->jel_hodljiv()){
+            zauzet[i][j-1]=true;
+            roditelj[i][j-1]=make_pair(i,j);
+            red.push(make_pair(i,j-1));
+        }
+
+        if(i+1<n && j+1<m && zauzet[i+1][j+1]==false && teren[i+1][j+1]->jel_hodljiv())
+        if(teren[i+1][j]->jel_hodljiv() && teren[i][j+1]->jel_hodljiv())
+        {
+            zauzet[i+1][j+1]=true;
+            roditelj[i+1][j+1]=make_pair(i,j);
+            red.push(make_pair(i+1,j+1));
+        }
+
+        if(i+1<n && j-1>=0 && zauzet[i+1][j-1]==false && teren[i+1][j-1]->jel_hodljiv())
+        if(teren[i+1][j]->jel_hodljiv() && teren[i][j-1]->jel_hodljiv())
+        {
+            zauzet[i+1][j-1]=true;
+            roditelj[i+1][j-1]=make_pair(i,j);
+            red.push(make_pair(i+1,j-1));
+        }
+
+        if(i-1>=0 && j+1<m && zauzet[i-1][j+1]==false && teren[i-1][j+1]->jel_hodljiv())
+        if(teren[i-1][j]->jel_hodljiv() && teren[i][j+1]->jel_hodljiv())
+        {
+            zauzet[i-1][j+1]=true;
+            roditelj[i-1][j+1]=make_pair(i,j);
+            red.push(make_pair(i-1,j+1));
+        }
+
+        if(i-1>=0 && j-1>=0 && zauzet[i-1][j-1]==false && teren[i-1][j-1]->jel_hodljiv())
+        if(teren[i-1][j]->jel_hodljiv() && teren[i][j-1]->jel_hodljiv())
+        {
+            zauzet[i-1][j-1]=true;
+            roditelj[i-1][j-1]=make_pair(i,j);
+            red.push(make_pair(i-1,j-1));
+        }
+
+    }
+    if(naso)
+    while(cilj!=lok){
+        put.push_back(teren[cilj.first][cilj.second]->temena[1][1].first);
+        cilj=roditelj[cilj.first][cilj.second];
+    }
+    put.push_back(teren[lok.first][lok.second]->temena[1][1].first);
+    return put;
+}
+
+pair<int,int> Nivo::vrati_indexe_od_koord(float x,float z){
+    int x_loc=floor(x)+n/2;
+    int z_loc=(abs(floor(z)-m/2))-1;
+
+    if(x_loc>=0 && x_loc<n && z_loc>=0 && z_loc<m)
+        return make_pair(z_loc,x_loc);
+    return make_pair(-1,-1);
+}
+
+ Plocica* Nivo::izaberi_plocicu(float i,float j){
+     return teren[i][j];
+ }
+
+float udaljenost(float x,float y,float x_,float y_){
+    return sqrt(x*x+y*y);
 }
