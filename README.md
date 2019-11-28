@@ -18,6 +18,9 @@ f - obrada terena tj. racunanje cvorova po kojim moze da se krece kompjuter
 m - ukljuci/iskljuci prikazivanje cvorova za kretanje kompjutera  
 1..5 - sirina za crtanje po terenu  
 z,x,c,v - tipovi terena redom : zemlja , zid , voda , drvo  
+[ - postavi pocetak za trazenje puta  
+] - postavi cilj za trazenje puta  
+j - trazi put i prikazi  
 
 mis klik - postavi trenutno izabrani tip sa trenutnom sirinom
 
