@@ -8,21 +8,40 @@ Pozicionirati se u folder Tenkici zatim izvrsiti narednu komandu iz terminala:
 g++ -std=c++11 Tenkici.cpp Nivo.cpp -lGL -lGLU -lglut  
 zatim izvrsiti:  
 ./a.out  
+Pri pokretanju se nalazite u meniju i potrebno je pritisnuti 1 ili 2 da bi ste usli u editor/igru
 
-Nivo editor komande:  
-w,a,s,d - pomeranje kamere  
-q,e - spustanje/podizanje kamere  
-t - cuvanje terena u fajl 1.nivo  
-p - ucitavanje terena iz fajla 1.nivo (ukoliko postoji)  
-f - obrada terena tj. racunanje cvorova po kojim moze da se krece kompjuter  
-m - ukljuci/iskljuci prikazivanje cvorova za kretanje kompjutera  
-1..5 - sirina za crtanje po terenu  
-z,x,c,v - tipovi terena redom : zemlja , zid , voda , drvo  
-[ - postavi pocetak za trazenje puta  
-] - postavi cilj za trazenje puta  
-j - trazi put i prikazi  
 
-mis klik - postavi trenutno izabrani tip sa trenutnom sirinom
+#### Kontrole za meni:
+
+| Taster      | Funkcija |
+| ----------- | ----------- |
+| **1**       | Pokreni editor nivoa       |
+| **2**   | Pokreni 1.nivo (mora da postoji fajl)        |
+
+
+#### Kontrole za editor:
+
+| Taster      | Funkcija |
+| ----------- | ----------- |
+| **w,a,s,d**       | pomeranje kamere       |
+| **q,e**   | spustanje/podizanje kamere        |
+| **t**   | cuvanje terena u fajl        |
+| **p**   | ucitavanje terena iz fajla        |
+| **f**   | obrada terena        |
+| **m**   | prikaz cvorova za kretanje (ukljuci/iskljuci)        |
+| **1 .. 5**   | sirina za crtanje        |
+| **z,x,c,v**   | tip terena:zemlja,zid,voda,drvo        |
+| **[**   | pocetak za trazenje puta        |
+| **]**   | cilj za trazenje puta        |
+| **j**   | prikazi put od pocetka do cilja        |
+
+
+#### Kontrole za igru:
+
+| Taster      | Funkcija |
+| ----------- | ----------- |
+| **w,s**       | Pokreni tenk napred/nazad       |
+| **a,d**   | Rotiraj tenk levo/desno        |
 
 
 
