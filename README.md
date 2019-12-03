@@ -8,7 +8,8 @@ Pozicionirati se u folder Tenkici zatim izvrsiti narednu komandu iz terminala:
 g++ -std=c++11 Tenkici.cpp Nivo.cpp -lGL -lGLU -lglut  
 zatim izvrsiti:  
 ./a.out  
-Pri pokretanju se nalazite u meniju i potrebno je pritisnuti 1 ili 2 da bi ste usli u editor/igru
+Pri pokretanju se nalazite u meniju i potrebno je pritisnuti 1 ili 2 da bi ste usli u editor/igru  
+(Vracanje nazad trenutno ne radi mrzi me da popravljam)
 
 
 #### Kontrole za meni:
