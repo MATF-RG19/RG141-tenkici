@@ -7,6 +7,8 @@ float cam_pos_y=-10;
 float cam_pos_z=0;
 float cam_f_y=1;
 
+bool prvo_pokretanje=true;
+
 static Nivo *tekuci_nivo;
 
 static int select_nivo=1;
@@ -24,8 +26,21 @@ float dy=0;
 float dz=0;
 int az=0;
 
+
+float cam_igra_x=0;
+float cam_igra_y=2;
+float cam_igra_z=-5;
+
+Igrac *tekuci_igrac;
+
+
 pair<int,int> pocetak=make_pair(-1,-1);
 pair<int,int> cilj=make_pair(-1,-1);
+
+float angle=-3.14;
+
+
+int mouse_x=0;
 
 void mis_racunaj(int x,int y){
     GLdouble farx,fary,farz;
@@ -45,7 +60,9 @@ void mis_racunaj(int x,int y){
 }
 
 vector<pair<float,float>> put;
-void tastatura(unsigned char taster, int x, int y){
+
+
+void tastatura_editor(unsigned char taster, int x, int y){
     if(taster=='a')
         cam_pos_x-=1;
     if(taster=='d')
@@ -143,7 +160,6 @@ void mis_pomera(int x,int y){
 
 
 void init_GL(){
-    tekuci_nivo=new Nivo(32,32);
     glEnable(GL_DEPTH_TEST);
     glMatrixMode(GL_PROJECTION);
     gluPerspective(90.0,1920.0/1080.0,0.1,250.0);
@@ -152,7 +168,7 @@ void init_GL(){
 }
 
 
-void render_func(){
+void render_func_editor(){
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     glGetDoublev(GL_PROJECTION_MATRIX,p);
     glPushMatrix();
@@ -194,18 +210,105 @@ void render_func(){
     glFlush();
 }
 
+void meni_render(){
+    glClear(GL_COLOR_BUFFER_BIT);
+    glClearColor(135/256.0f,206/256.0f,235/256.0f,1);
+    glutSwapBuffers();
+    glutPostRedisplay();
+    glFlush();
+}
+
+void igra_render(){
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+    glGetDoublev(GL_PROJECTION_MATRIX,p);
+    glClearColor(135/256.0f,206/256.0f,235/256.0f,1);
+    glPushMatrix();
+    cam_igra_x=2*cos(tekuci_igrac->angle+3.14);
+    cam_igra_z=2*sin(tekuci_igrac->angle+3.14);
+    gluLookAt(tekuci_igrac->x+cam_igra_x,2,tekuci_igrac->z+cam_igra_z,
+    tekuci_igrac->x+2*tekuci_igrac->px,0,tekuci_igrac->z+2*tekuci_igrac->pz,
+    0,1,0
+    );
+    glGetDoublev(GL_MODELVIEW_MATRIX,m);
+    
+    glGetIntegerv(GL_VIEWPORT,v);
+    tekuci_nivo->crtaj_teren_igra();  
+    tekuci_igrac->crtaj();
+    glLineWidth(10);
+    glBegin(GL_LINES);
+    glColor3f(0,0,0);
+    glVertex3f(tekuci_igrac->x,0,tekuci_igrac->z);
+    glVertex3f(tekuci_igrac->x+tekuci_igrac->px,0,tekuci_igrac->z+tekuci_igrac->pz);
+    glEnd();
+    glPopMatrix();
+    
+    glutSwapBuffers();
+    glutPostRedisplay();
+    glFlush();
+}
+
+void mis_igra(int x,int y){
+    if(prvo_pokretanje==true){
+        mouse_x=x;
+        prvo_pokretanje=false;
+    }
+    int razlika=x-mouse_x;
+    
+}
+
+void igra_tastatura(unsigned char taster, int x, int y){
+    if(taster=='w'){
+        if(tekuci_nivo->proveri_koliziju(tekuci_igrac->x+tekuci_igrac->px,
+        tekuci_igrac->pz+tekuci_igrac->z))
+        tekuci_igrac->pomeri_napred();
+    }
+    if(taster=='s'){
+        if(tekuci_nivo->proveri_koliziju(tekuci_igrac->x-tekuci_igrac->px,
+        tekuci_igrac->pz-tekuci_igrac->z))
+        tekuci_igrac->pomeri_nazad();
+    }
+    if(taster=='d'){
+    tekuci_igrac->angle+=0.05;
+    }
+    if(taster=='a'){
+    tekuci_igrac->angle-=0.05f;
+    }
+    tekuci_igrac->pz=sin(tekuci_igrac->angle);
+    tekuci_igrac->px=cos(tekuci_igrac->angle);
+    mouse_x=x;
+     
+}
+
+void meni_tastatura(unsigned char taster, int x, int y){
+    if(taster=='1'){
+        glutKeyboardFunc(tastatura_editor);
+        tekuci_nivo=new Nivo(32,32);
+        glutKeyboardFunc(tastatura_editor);
+        glutMouseFunc(mis);
+        glutMotionFunc(mis_pomera);
+        glutDisplayFunc(render_func_editor);
+    }
+    if(taster=='2'){
+        delete(tekuci_nivo);
+        tekuci_nivo=tekuci_nivo->ucitaj_teren("1.nivo");
+        delete(tekuci_igrac);
+        tekuci_igrac=new Igrac();
+        glutMotionFunc(mis_igra);
+        glutKeyboardFunc(igra_tastatura);
+        glutDisplayFunc(igra_render);
+    }
+}
+
 
 
 int main(int argc,char *argv[]){
     glutInit(&argc,argv);
     glutInitWindowSize(1920,1080);
-    glutInitDisplayMode(GLUT_RGB|GLUT_DOUBLE);
+    glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH|GLUT_DOUBLE);
     glutCreateWindow("Tenkici");
-    glutKeyboardFunc(tastatura);
-    glutMouseFunc(mis);
-    glutMotionFunc(mis_pomera);
-    glutDisplayFunc(render_func);
     init_GL();
+    glutKeyboardFunc(meni_tastatura);
+    glutDisplayFunc(meni_render);
     glutMainLoop();
     return 0;
 }

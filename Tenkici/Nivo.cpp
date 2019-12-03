@@ -349,7 +349,73 @@ pair<int,int> Nivo::vrati_indexe_od_koord(float x,float z){
  Plocica* Nivo::izaberi_plocicu(float i,float j){
      return teren[i][j];
  }
+void Plocica::crtaj_igra(){
+    if(tip==ZEMLJA)
+    glColor3ub(34,139,34);
+    if(tip==ZID){
+    glLineWidth(2);
+    glPushMatrix();
+    glColor3ub(105,105,105);
+    glTranslatef(temena[1][1].first.first,0,temena[1][1].first.second);
+    glutSolidCube(1);
+    glColor3f(0,0,0);
+    glutWireCube(1);
+    glPopMatrix();
+    glPushMatrix();
+    glColor3ub(105,105,105);
+    glTranslatef(temena[1][1].first.first,1,temena[1][1].first.second);
+    glutSolidCube(1);
+    glColor3f(0,0,0);
+    glutWireCube(1);
+    glPopMatrix();
+    glColor3f(0.3,0.31,0.28);
+    glLineWidth(1);
+    }
+    if(tip==VODA)
+    glColor3ub(100,149,237);
+    if(tip==DRVO){
+    glPushMatrix();
+    glTranslatef(temena[1][1].first.first,1.5f,temena[1][1].first.second);
+    glColor3ub(85,107,47);
+    glutSolidSphere(0.5,20,20);
+    glPopMatrix();
+    glColor3f(0.2,0.1,0.1);
+    glPushMatrix();
+    glTranslatef(temena[1][1].first.first,1,temena[1][1].first.second);
+    glRotatef(90,1,0,0);
+    glutSolidCylinder(0.2,1,20,20);
+    glPopMatrix();
+    glColor3ub(34,139,34);
+    }
+    glBegin(GL_QUADS);
+    glVertex3f(temena[0][0].first.first,0,temena[0][0].first.second);
+    glVertex3f(temena[0][2].first.first,0,temena[0][2].first.second);
+    glVertex3f(temena[2][2].first.first,0,temena[2][2].first.second);
+    glVertex3f(temena[2][0].first.first,0,temena[2][0].first.second);
+    glEnd();
+}
+
+ void Nivo::crtaj_teren_igra(){
+    for(int i=0;i<n;i++)
+    for(int j=0;j<n;j++)
+    teren[i][j]->crtaj_igra();
+ }
 
 float udaljenost(float x,float y,float x_,float y_){
-    return sqrt(x*x+y*y);
+    return sqrt((x-x_)*(x-x_)+(y_-y)*(y_-y));
+}
+
+bool Nivo::proveri_koliziju(float x,float z){
+    pair<int,int> tek_koord=vrati_indexe_od_koord(x,z);
+    if(tek_koord==make_pair(-1,-1))
+        return false;
+    for(int i=tek_koord.first-1;i<=tek_koord.first+1;i++)
+    for(int j=tek_koord.second-1;j<=tek_koord.second+1;j++){
+        if(i>=0 && i<n && j>=0 && j<m){
+            if(udaljenost(x,z,teren[i][j]->temena[1][1].first.first,
+            teren[i][j]->temena[1][1].first.second)<1 && teren[i][j]->jel_hodljiv()==false)
+                return false;
+        }
+    }
+    return true;
 }
