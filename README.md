@@ -5,7 +5,7 @@ Ovo je 3d igra u kojoj igrac kontrolise svog tenkica i ima ulogu da unisti sve n
 
 Pokretanje:  
 Pozicionirati se u folder Tenkici zatim izvrsiti narednu komandu iz terminala:  
-g++ -std=c++11 Tenkici.cpp Nivo.cpp -lGL -lGLU -lglut  
+g++ -std=c++14 Tenkici.cpp Nivo.cpp -lGL -lGLU -lglut  
 zatim izvrsiti:  
 ./a.out  
 Pri pokretanju se nalazite u meniju i potrebno je pritisnuti 1 ili 2 da bi ste usli u editor/igru  
@@ -29,6 +29,8 @@ Pri pokretanju se nalazite u meniju i potrebno je pritisnuti 1 ili 2 da bi ste u
 | **t**   | cuvanje terena u fajl        |
 | **p**   | ucitavanje terena iz fajla        |
 | **f**   | obrada terena        |
+| **g**   | postavljanje neprijatelja        |
+| **h**   | postavljanje igraca        |
 | **m**   | prikaz cvorova za kretanje (ukljuci/iskljuci)        |
 | **1 .. 5**   | sirina za crtanje        |
 | **z,x,c,v**   | tip terena:zemlja,zid,voda,drvo        |
@@ -43,6 +45,8 @@ Pri pokretanju se nalazite u meniju i potrebno je pritisnuti 1 ili 2 da bi ste u
 | ----------- | ----------- |
 | **w,s**       | Pokreni tenk napred/nazad       |
 | **a,d**   | Rotiraj tenk levo/desno        |
+| **mis pomeraj**   | Rotiraj gornji deo tenka levo/desno        |
+| **mis klik**   | pucanje (otprilike 1 sekunda se ceka do sledeceg pucanja)        |
 
 
 
