@@ -5,7 +5,7 @@ Ovo je 3d igra u kojoj igrac kontrolise svog tenkica i ima ulogu da unisti sve n
 
 Pokretanje:  
 Pozicionirati se u folder Tenkici zatim izvrsiti narednu komandu iz terminala:  
-g++ -std=c++14 Tenkici.cpp Nivo.cpp -lGL -lGLU -lglut  
+g++ -std=c++14 Tenkici.cpp Nivo.cpp Neprijatelj.cpp -lGL -lGLU -lglut  
 zatim izvrsiti:  
 ./a.out  
 Pri pokretanju se nalazite u meniju i potrebno je pritisnuti 1 ili 2 da bi ste usli u editor/igru  
