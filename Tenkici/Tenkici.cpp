@@ -1,6 +1,7 @@
 #include<GL/glut.h>
 #include<GL/gl.h>
 #include "Nivo.h"
+#include "Neprijatelj.h"
 
 float cam_pos_x=0;
 float cam_pos_y=-10;
@@ -10,6 +11,7 @@ float cam_f_y=1;
 bool prvo_pokretanje=true;
 
 static Nivo *tekuci_nivo;
+
 
 static int select_nivo=1;
 static int select_tip=1;
@@ -25,7 +27,7 @@ float dx=0;
 float dy=0;
 float dz=0;
 int az=0;
-
+bool keys[256];
 
 float cam_igra_x=0;
 float cam_igra_y=2;
@@ -34,13 +36,16 @@ float cam_igra_z=-5;
 Igrac *tekuci_igrac;
 
 
+
 pair<int,int> pocetak=make_pair(-1,-1);
 pair<int,int> cilj=make_pair(-1,-1);
 
 float angle=-3.14;
 
-
 int mouse_x=0;
+
+vector<Neprijatelj *> neprijatelji;
+
 
 void mis_racunaj(int x,int y){
     GLdouble farx,fary,farz;
@@ -60,6 +65,27 @@ void mis_racunaj(int x,int y){
 }
 
 vector<pair<float,float>> put;
+
+float moj_distanca(float x,float y,float x_,float y_){
+    return sqrt((x-x_)*(x-x_)+(y_-y)*(y_-y));
+}
+
+bool metak_kolizija(unique_ptr<Metak> &m){
+    if(moj_distanca(tekuci_igrac->x,tekuci_igrac->z,m->x,m->z)<0.5f && m->nas_metak==false){
+        tekuci_igrac->health-=20;
+        return true;
+    }
+    for(Neprijatelj* nep:neprijatelji){
+        if(moj_distanca(m->x,m->z,nep->x,nep->z)<0.5f && m->nas_metak==true){
+            nep->helti-=50;
+            return true;
+        }
+    }
+    if(tekuci_nivo->proveri_koliziju_metak(m->x,m->z)==false){
+        return true;
+    }
+    return false;
+}
 
 
 void tastatura_editor(unsigned char taster, int x, int y){
@@ -83,6 +109,10 @@ void tastatura_editor(unsigned char taster, int x, int y){
         select_tip=3;
     if(taster=='v')
         select_tip=4;
+    if(taster=='g')
+        select_tip=5;
+    if(taster=='h')
+        select_tip=6;
     if(taster=='t')
         tekuci_nivo->sacuvaj_teren();
     if(taster=='f')
@@ -164,7 +194,6 @@ void init_GL(){
     glMatrixMode(GL_PROJECTION);
     gluPerspective(90.0,1920.0/1080.0,0.1,250.0);
     glMatrixMode(GL_MODELVIEW);
-    
 }
 
 
@@ -194,7 +223,7 @@ void render_func_editor(){
     for(pair<float,float> cvor:put)
     glVertex3f(cvor.first,0,cvor.second);
     if(pocetak!=make_pair(-1,-1)){
-        glColor3f(0.4,0.1,0.5);
+        glColor3f(0,0,1);
         Plocica * pl=tekuci_nivo->izaberi_plocicu(pocetak.first,pocetak.second);
         glVertex3f(pl->temena[1][1].first.first,0,pl->temena[1][1].first.second);
     }
@@ -219,14 +248,35 @@ void meni_render(){
 }
 
 void igra_render(){
+    if(keys['w']==true){
+        if(tekuci_nivo->proveri_koliziju(tekuci_igrac->x+tekuci_igrac->px,
+        tekuci_igrac->pz+tekuci_igrac->z))
+        tekuci_igrac->pomeri_napred();
+    }
+    if(keys['s']==true){
+        if(tekuci_nivo->proveri_koliziju(tekuci_igrac->x-tekuci_igrac->px,
+        tekuci_igrac->z-tekuci_igrac->pz))
+        tekuci_igrac->pomeri_nazad();
+    }
+    if(keys['d']==true){
+    tekuci_igrac->angle+=0.05;
+    }
+    if(keys['a']==true){
+    tekuci_igrac->angle-=0.05f;
+    }
+    tekuci_igrac->pz=sin(tekuci_igrac->angle);
+    tekuci_igrac->px=cos(tekuci_igrac->angle);
+    tekuci_igrac->cev_x=cos(tekuci_igrac->angle_up);
+    tekuci_igrac->cev_z=sin(tekuci_igrac->angle_up);
+
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     glGetDoublev(GL_PROJECTION_MATRIX,p);
     glClearColor(135/256.0f,206/256.0f,235/256.0f,1);
     glPushMatrix();
-    cam_igra_x=2*cos(tekuci_igrac->angle+3.14);
-    cam_igra_z=2*sin(tekuci_igrac->angle+3.14);
+    cam_igra_x=2*cos(tekuci_igrac->angle_up+3.14);
+    cam_igra_z=2*sin(tekuci_igrac->angle_up+3.14);
     gluLookAt(tekuci_igrac->x+cam_igra_x,2,tekuci_igrac->z+cam_igra_z,
-    tekuci_igrac->x+2*tekuci_igrac->px,0,tekuci_igrac->z+2*tekuci_igrac->pz,
+    tekuci_igrac->x+2*tekuci_igrac->cev_x,0,tekuci_igrac->z+2*tekuci_igrac->cev_z,
     0,1,0
     );
     glGetDoublev(GL_MODELVIEW_MATRIX,m);
@@ -235,53 +285,67 @@ void igra_render(){
     tekuci_nivo->crtaj_teren_igra();  
     tekuci_igrac->crtaj();
     glLineWidth(10);
-    glBegin(GL_LINES);
-    glColor3f(0,0,0);
-    glVertex3f(tekuci_igrac->x,0,tekuci_igrac->z);
-    glVertex3f(tekuci_igrac->x+tekuci_igrac->px,0,tekuci_igrac->z+tekuci_igrac->pz);
-    glEnd();
-    glPopMatrix();
+    for(Neprijatelj* nep:neprijatelji){
+    if(nep->helti>0){
+    nep->radi_nesto(tekuci_nivo,make_pair(tekuci_igrac->x,tekuci_igrac->z));
+    nep->crtaj();
+    } else nep->crtaj_mrtvog();
+    }
+    for(auto it=nivo_granate.begin();it<nivo_granate.end();it++){
+        (*it)->Crtaj();
+        if(metak_kolizija(*it)==true)
+        nivo_granate.erase(it);
+    }
     
+    glPopMatrix();
     glutSwapBuffers();
     glutPostRedisplay();
     glFlush();
+    if(tekuci_igrac->health<=0){
+        cout<<"Izgubili ste"<<endl;
+        exit(0);
+    }
+    int br_zivih_nep=neprijatelji.size();
+    for(Neprijatelj *n:neprijatelji)
+        if(n->helti<=0)
+        br_zivih_nep--;
+    if(br_zivih_nep==0){
+        cout<<"Pobedili ste"<<endl;
+        exit(0);
+    }
+}
+
+void klik(int klik,int stanje,int x,int y){
+    if(klik==GLUT_LEFT_BUTTON && stanje==GLUT_DOWN && tekuci_igrac->sec==tekuci_igrac->brzina_napada){
+        nivo_granate.push_back(make_unique<Metak>(tekuci_igrac->x+tekuci_igrac->cev_x,tekuci_igrac->z+tekuci_igrac->cev_z,tekuci_igrac->cev_x,tekuci_igrac->cev_z));
+        nivo_granate.back()->nas_metak=true;
+        tekuci_igrac->sec=0;
+    }
 }
 
 void mis_igra(int x,int y){
-    if(prvo_pokretanje==true){
-        mouse_x=x;
-        prvo_pokretanje=false;
-    }
     int razlika=x-mouse_x;
-    
+    mouse_x=x;
+    if(razlika>0)
+        tekuci_igrac->angle_up+=0.05f;
+    if(razlika<0) tekuci_igrac->angle_up-=0.05f;
+    if(razlika==0){
+        glutWarpPointer(1920/2,1080/2);
+        mouse_x=1920/2;
+    }
 }
 
 void igra_tastatura(unsigned char taster, int x, int y){
-    if(taster=='w'){
-        if(tekuci_nivo->proveri_koliziju(tekuci_igrac->x+tekuci_igrac->px,
-        tekuci_igrac->pz+tekuci_igrac->z))
-        tekuci_igrac->pomeri_napred();
-    }
-    if(taster=='s'){
-        if(tekuci_nivo->proveri_koliziju(tekuci_igrac->x-tekuci_igrac->px,
-        tekuci_igrac->pz-tekuci_igrac->z))
-        tekuci_igrac->pomeri_nazad();
-    }
-    if(taster=='d'){
-    tekuci_igrac->angle+=0.05;
-    }
-    if(taster=='a'){
-    tekuci_igrac->angle-=0.05f;
-    }
-    tekuci_igrac->pz=sin(tekuci_igrac->angle);
-    tekuci_igrac->px=cos(tekuci_igrac->angle);
-    mouse_x=x;
+    keys[taster]=true;
      
+}
+
+void keyup(unsigned char key,int x,int y){
+    keys[key]=false;
 }
 
 void meni_tastatura(unsigned char taster, int x, int y){
     if(taster=='1'){
-        glutKeyboardFunc(tastatura_editor);
         tekuci_nivo=new Nivo(32,32);
         glutKeyboardFunc(tastatura_editor);
         glutMouseFunc(mis);
@@ -289,12 +353,29 @@ void meni_tastatura(unsigned char taster, int x, int y){
         glutDisplayFunc(render_func_editor);
     }
     if(taster=='2'){
+        neprijatelji.clear();
+        nivo_granate.clear();
+        glutSetCursor(GLUT_CURSOR_NONE);
         delete(tekuci_nivo);
         tekuci_nivo=tekuci_nivo->ucitaj_teren("1.nivo");
         delete(tekuci_igrac);
-        tekuci_igrac=new Igrac();
-        glutMotionFunc(mis_igra);
+        for(int i=0;i<tekuci_nivo->n;i++)
+        for(int j=0;j<tekuci_nivo->m;j++){
+            if(tekuci_nivo->teren[i][j]->daj_tip()==Ig){
+                tekuci_igrac=new Igrac();
+                tekuci_igrac->x=tekuci_nivo->teren[i][j]->temena[1][1].first.first;
+                tekuci_igrac->z=tekuci_nivo->teren[i][j]->temena[1][1].first.second;
+                tekuci_nivo->teren[i][j]->postavi_tip(ZEMLJA);
+            }
+            if(tekuci_nivo->teren[i][j]->daj_tip()==Nep){
+                neprijatelji.push_back(new Neprijatelj(tekuci_nivo->teren[i][j]->temena[0][0].first.first,tekuci_nivo->teren[i][j]->temena[0][0].first.second));
+                tekuci_nivo->teren[i][j]->postavi_tip(ZEMLJA);
+            }
+        }
+        glutPassiveMotionFunc(mis_igra);
         glutKeyboardFunc(igra_tastatura);
+        glutMouseFunc(klik);
+        glutKeyboardUpFunc(keyup);
         glutDisplayFunc(igra_render);
     }
 }
@@ -306,7 +387,9 @@ int main(int argc,char *argv[]){
     glutInitWindowSize(1920,1080);
     glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH|GLUT_DOUBLE);
     glutCreateWindow("Tenkici");
+    glutFullScreen();
     init_GL();
+    glutIgnoreKeyRepeat(0);
     glutKeyboardFunc(meni_tastatura);
     glutDisplayFunc(meni_render);
     glutMainLoop();

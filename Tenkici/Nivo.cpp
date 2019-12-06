@@ -2,8 +2,10 @@
 
 bool prikazi_cvorove=false;
 
-float udaljenost(float x,float y,float x_,float y_);
+vector<unique_ptr<Metak>> nivo_granate;
 
+float udaljenost(float x,float y,float x_,float y_);
+pair<int,int> tek_igrac=make_pair(-1,-1);
 Plocica::Plocica(float x,float z){
     hodljiv=true;
     tip=ZEMLJA;
@@ -38,6 +40,10 @@ void Plocica::crtaj(){
     glColor3f(0,0,0.76);
     if(tip==DRVO)
     glColor3f(0.2,0.1,0.1);
+    if(tip==Ig)
+    glColor3f(0.3,0.38,0.8);
+    if(tip==Nep)
+    glColor3f(1,0,0);
     glBegin(GL_QUADS);
     glVertex3f(temena[0][0].first.first,0,temena[0][0].first.second);
     glVertex3f(temena[0][2].first.first,0,temena[0][2].first.second);
@@ -59,7 +65,7 @@ void Plocica::crtaj(){
 
 void Plocica::postavi_tip(int tip){
     this->tip=tip;
-    if(tip!=ZEMLJA)
+    if(tip!=ZEMLJA && tip!=Ig && tip!=Nep)
     this->hodljiv=false;
     else {
         for(int l=0;l<=2;l++)
@@ -125,8 +131,16 @@ void Nivo::izaberi_plocicu(float x,float z,int n2,int tip){
 //za pronadjednu plocicu i datu sirina obelezava sve plocice oko nje
     for(int i=pocetak_z;i<=kraj_z;i++)
     for(int j=pocetak_x;j<=kraj_x;j++)
-    if(i>=0 && i<m && j>=0 &&  j<n)
-    teren[i][j]->postavi_tip(tip);  
+    if(i>=0 && i<m && j>=0 &&  j<n){
+        if(tip==Ig && tek_igrac==make_pair(-1,-1)){
+            tek_igrac=make_pair(i,j);
+        }
+        else if(tek_igrac!=make_pair(-1,-1) && tip==Ig){
+            teren[tek_igrac.first][tek_igrac.second]->postavi_tip(ZEMLJA);
+            tek_igrac=make_pair(i,j);
+        }
+         teren[i][j]->postavi_tip(tip);
+    }
 }
 
 //FUNKCIJA KOJA RACUNA ZA SVAKU PLOCICU TERENA KUDA JE MOGUCE HODATI
@@ -232,6 +246,8 @@ Nivo* Nivo::ucitaj_teren(string path){
             getline(citac,linija);
             int tip;
             sscanf(linija.c_str(),"tip=%d",&tip);
+            if(tip==Ig)
+            tek_igrac=make_pair(i,j);
             tekuci->teren[i][j]->postavi_tip(tip);
             }
         }
@@ -334,6 +350,8 @@ vector<pair<float,float>> Nivo::bfs(pair<int,int> lok,pair<int,int> cilj){
         cilj=roditelj[cilj.first][cilj.second];
     }
     put.push_back(teren[lok.first][lok.second]->temena[1][1].first);
+    if(put.empty())
+        cout<<"NEMA PUTA"<<endl;
     return put;
 }
 
@@ -377,13 +395,13 @@ void Plocica::crtaj_igra(){
     glPushMatrix();
     glTranslatef(temena[1][1].first.first,1.5f,temena[1][1].first.second);
     glColor3ub(85,107,47);
-    glutSolidSphere(0.5,20,20);
+    glutSolidSphere(0.6,20,20);
     glPopMatrix();
     glColor3f(0.2,0.1,0.1);
     glPushMatrix();
     glTranslatef(temena[1][1].first.first,1,temena[1][1].first.second);
     glRotatef(90,1,0,0);
-    glutSolidCylinder(0.2,1,20,20);
+    glutSolidCylinder(0.3,1.5,20,20);
     glPopMatrix();
     glColor3ub(34,139,34);
     }
@@ -412,8 +430,35 @@ bool Nivo::proveri_koliziju(float x,float z){
     for(int i=tek_koord.first-1;i<=tek_koord.first+1;i++)
     for(int j=tek_koord.second-1;j<=tek_koord.second+1;j++){
         if(i>=0 && i<n && j>=0 && j<m){
+            if(udaljenost(x,z,teren[i][j]->temena[0][0].first.first,
+            teren[i][j]->temena[0][0].first.second)<0.3 && teren[i][j]->jel_hodljiv()==false)
+                return false;
+            if(udaljenost(x,z,teren[i][j]->temena[0][2].first.first,
+            teren[i][j]->temena[0][2].first.second)<0.3 && teren[i][j]->jel_hodljiv()==false)
+                return false;
+            if(udaljenost(x,z,teren[i][j]->temena[2][0].first.first,
+            teren[i][j]->temena[2][0].first.second)<0.3 && teren[i][j]->jel_hodljiv()==false)
+                return false;
+            if(udaljenost(x,z,teren[i][j]->temena[2][2].first.first,
+            teren[i][j]->temena[2][2].first.second)<0.3 && teren[i][j]->jel_hodljiv()==false)
+                return false;
             if(udaljenost(x,z,teren[i][j]->temena[1][1].first.first,
-            teren[i][j]->temena[1][1].first.second)<1 && teren[i][j]->jel_hodljiv()==false)
+            teren[i][j]->temena[1][1].first.second)<0.5 && teren[i][j]->jel_hodljiv()==false)
+                return false;
+        }
+    }
+    return true;
+}
+
+bool Nivo::proveri_koliziju_metak(float x,float z){
+    pair<int,int> tek_koord=vrati_indexe_od_koord(x,z);
+    if(tek_koord==make_pair(-1,-1))
+        return false;
+    for(int i=tek_koord.first-1;i<=tek_koord.first+1;i++)
+    for(int j=tek_koord.second-1;j<=tek_koord.second+1;j++){
+        if(i>=0 && i<n && j>=0 && j<m){
+            if(udaljenost(x,z,teren[i][j]->temena[1][1].first.first,
+            teren[i][j]->temena[1][1].first.second)<0.5 && (teren[i][j]->jel_hodljiv()==false && teren[i][j]->daj_tip()!=VODA))
                 return false;
         }
     }
