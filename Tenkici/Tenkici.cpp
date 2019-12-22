@@ -2,18 +2,23 @@
 #include<GL/gl.h>
 #include "Nivo.h"
 #include "Neprijatelj.h"
+#include "gui.h"
+#include "objekt.h"
+
+bool pauza=false;
 
 float cam_pos_x=0;
-float cam_pos_y=-10;
+float cam_pos_y=-19.8;
 float cam_pos_z=0;
 float cam_f_y=1;
+int mouse_click=0;
 
 bool prvo_pokretanje=true;
 
 static Nivo *tekuci_nivo;
 
 
-static int select_nivo=1;
+static unsigned int select_nivo=1;
 static int select_tip=1;
 
 static int mis_x;
@@ -35,6 +40,23 @@ float cam_igra_z=-5;
 
 Igrac *tekuci_igrac;
 
+
+void meni_tastatura(unsigned char taster, int x, int y);
+
+void meni_mis(int x,int y);
+
+void meni_klik(int klik,int stanje,int x,int y);
+void meni_render();
+
+void pauza_render();
+
+void pauza_klik(int klik,int stanje,int x,int y);
+
+void mis_pauza(int x,int y);
+
+void pauza_tastatura(unsigned char taster, int x, int y);
+
+void pauza_keyup(unsigned char key,int x,int y);
 
 
 pair<int,int> pocetak=make_pair(-1,-1);
@@ -167,7 +189,8 @@ void mis(int dugme, int stanje, int x,int y){
     dy=cam_pos_y+t*vector_y;
     dz=cam_pos_z+t*vector_z;
     tekuci_nivo->izaberi_plocicu(dx,dz,select_nivo,select_tip);
-    
+    if(stanje==GLUT_DOWN && dugme==GLUT_LEFT_BUTTON)
+    azuriraj_mis(x,y,1);
 }
 
 void mis_pomera(int x,int y){
@@ -186,21 +209,29 @@ void mis_pomera(int x,int y){
     dy=cam_pos_y+t*vector_y;
     dz=cam_pos_z+t*vector_z;
     tekuci_nivo->izaberi_plocicu(dx,dz,select_nivo,select_tip);
+    azuriraj_mis(x,y,0);
 }
 
 
 void init_GL(){
     glEnable(GL_DEPTH_TEST);
-    glMatrixMode(GL_PROJECTION);
-    gluPerspective(90.0,1920.0/1080.0,0.1,250.0);
-    glMatrixMode(GL_MODELVIEW);
+    glEnable(GL_TEXTURE_2D);
+    
 }
 
 
 void render_func_editor(){
+    glLoadIdentity();
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(90.0,1920.0/1080.0,0.1,250.0);
+    glMatrixMode(GL_MODELVIEW);
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+    glClearColor(135/256.0f,206/256.0f,235/256.0f,1);
     glGetDoublev(GL_PROJECTION_MATRIX,p);
+    
     glPushMatrix();
+
     gluLookAt(cam_pos_x,cam_pos_y,cam_pos_z,
     cam_pos_x,0,cam_pos_z,
     0,0,1
@@ -234,20 +265,56 @@ void render_func_editor(){
     }
     glEnd();
     glPopMatrix();
+
+    //gki
+    glLoadIdentity();
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(0,1920,0,1080);
+    glMatrixMode(GL_MODELVIEW);
+    glDisable(GL_DEPTH_TEST);
+    frejm(1920-200,0,200,1080);
+    if(dugme_slika(trava_slika,1920-125,900,50,50))
+        select_tip=1;
+    if(dugme_slika(zid_slika,1920-125,825,50,50))
+        select_tip=2;
+    if(dugme_slika(voda_slika,1920-125,825-75,50,50))
+        select_tip=3;
+    if(dugme_slika(drvo_slika,1920-125,825-150,50,50))
+        select_tip=4;
+    if(dugme("igrac",1920-175,825-225,150,50))
+        select_tip=6;
+    if(dugme("nep",1920-175,825-300,150,50))
+        select_tip=5;
+        label(to_string(select_nivo),1920-175,825-375,50,50);
+        if(dugme_manji("-",1920-125,825-375,50,25))
+            if(select_nivo>1)
+            select_nivo--;
+        if(dugme_manji("+",1920-125,825-350,50,25))
+            if(select_nivo<10)
+            select_nivo++;
+    if(dugme_manji("sacuvaj",1920-175,825-450,150,50))
+        tekuci_nivo->sacuvaj_teren();
+    if(dugme_manji("izadji",1920-175,825-525,150,50)){
+        
+        glutKeyboardFunc(meni_tastatura);
+        glutPassiveMotionFunc(meni_mis);
+        glutMouseFunc(meni_klik);
+        glutDisplayFunc(meni_render);
+    }
+    glEnable(GL_DEPTH_TEST);
+
     glutSwapBuffers();
     glutPostRedisplay();
     glFlush();
 }
 
-void meni_render(){
-    glClear(GL_COLOR_BUFFER_BIT);
-    glClearColor(135/256.0f,206/256.0f,235/256.0f,1);
-    glutSwapBuffers();
-    glutPostRedisplay();
-    glFlush();
-}
+
 
 void igra_render(){
+
+    
+        glutSetCursor(GLUT_CURSOR_NONE);
     if(keys['w']==true){
         if(tekuci_nivo->proveri_koliziju(tekuci_igrac->x+tekuci_igrac->px,
         tekuci_igrac->pz+tekuci_igrac->z))
@@ -264,14 +331,24 @@ void igra_render(){
     if(keys['a']==true){
     tekuci_igrac->angle-=0.05f;
     }
+    
+    
     tekuci_igrac->pz=sin(tekuci_igrac->angle);
     tekuci_igrac->px=cos(tekuci_igrac->angle);
     tekuci_igrac->cev_x=cos(tekuci_igrac->angle_up);
     tekuci_igrac->cev_z=sin(tekuci_igrac->angle_up);
 
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-    glGetDoublev(GL_PROJECTION_MATRIX,p);
     glClearColor(135/256.0f,206/256.0f,235/256.0f,1);
+
+    
+    
+    glLoadIdentity();
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(90.0,1920.0/1080.0,0.1,250.0);
+    glMatrixMode(GL_MODELVIEW);
+
     glPushMatrix();
     cam_igra_x=2*cos(tekuci_igrac->angle_up+3.14);
     cam_igra_z=2*sin(tekuci_igrac->angle_up+3.14);
@@ -279,9 +356,6 @@ void igra_render(){
     tekuci_igrac->x+2*tekuci_igrac->cev_x,0,tekuci_igrac->z+2*tekuci_igrac->cev_z,
     0,1,0
     );
-    glGetDoublev(GL_MODELVIEW_MATRIX,m);
-    
-    glGetIntegerv(GL_VIEWPORT,v);
     tekuci_nivo->crtaj_teren_igra();  
     tekuci_igrac->crtaj();
     glLineWidth(10);
@@ -289,6 +363,31 @@ void igra_render(){
     if(nep->helti>0){
     nep->radi_nesto(tekuci_nivo,make_pair(tekuci_igrac->x,tekuci_igrac->z));
     nep->crtaj();
+
+    glPushMatrix();
+   
+    glTranslatef(nep->x,1.25f,nep->z);
+    glRotatef(-tekuci_igrac->angle_up*180/3.14+90,0,1,0);
+    glScalef(1,0.1,1);
+    glTranslatef(0.5,0,0);
+    float odnos=(float)nep->helti/100.0;
+    glColor3f(1,0,0);
+    glBegin(GL_QUADS);
+    glVertex3f(0,0,0);
+    glVertex3f(-1*odnos,0,0);
+    glVertex3f(-1*odnos,1,0);
+    glVertex3f(0,1,0);
+    glEnd();
+    glColor3f(0.2,0.2,0.2);
+    glBegin(GL_LINE_STRIP);
+    glVertex3f(0,0,0);
+    glVertex3f(-1,0,0);
+    glVertex3f(-1,1,0);
+    glVertex3f(0,1,0);
+    glVertex3f(0,0,0);
+    glEnd();
+
+    glPopMatrix();
     } else nep->crtaj_mrtvog();
     }
     for(auto it=nivo_granate.begin();it<nivo_granate.end();it++){
@@ -296,11 +395,20 @@ void igra_render(){
         if(metak_kolizija(*it)==true)
         nivo_granate.erase(it);
     }
-    
+    //KOD ZA GUI
     glPopMatrix();
-    glutSwapBuffers();
-    glutPostRedisplay();
-    glFlush();
+
+    glLoadIdentity();
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(0,1920,0,1080);
+    glMatrixMode(GL_MODELVIEW);
+    glDisable(GL_DEPTH_TEST);
+    helt_bar(0,0,300,40,100,tekuci_igrac->health);
+    
+    glEnable(GL_DEPTH_TEST);
+
+
     if(tekuci_igrac->health<=0){
         cout<<"Izgubili ste"<<endl;
         exit(0);
@@ -312,7 +420,14 @@ void igra_render(){
     if(br_zivih_nep==0){
         cout<<"Pobedili ste"<<endl;
         exit(0);
-    }
+        }
+    
+
+
+        glutSwapBuffers();
+        glutPostRedisplay();
+        glFlush();
+    
 }
 
 void klik(int klik,int stanje,int x,int y){
@@ -320,6 +435,7 @@ void klik(int klik,int stanje,int x,int y){
         nivo_granate.push_back(make_unique<Metak>(tekuci_igrac->x+tekuci_igrac->cev_x,tekuci_igrac->z+tekuci_igrac->cev_z,tekuci_igrac->cev_x,tekuci_igrac->cev_z));
         nivo_granate.back()->nas_metak=true;
         tekuci_igrac->sec=0;
+        azuriraj_mis(x,y,1);
     }
 }
 
@@ -329,30 +445,57 @@ void mis_igra(int x,int y){
     if(razlika>0)
         tekuci_igrac->angle_up+=0.05f;
     if(razlika<0) tekuci_igrac->angle_up-=0.05f;
-    if(razlika==0){
-        glutWarpPointer(1920/2,1080/2);
-        mouse_x=1920/2;
-    }
+    
+    azuriraj_mis(x,y,0);
 }
 
 void igra_tastatura(unsigned char taster, int x, int y){
+    
     keys[taster]=true;
-     
+    
 }
 
 void keyup(unsigned char key,int x,int y){
+    if(keys[27]==true && key==27){
+        keys[key]=false;
+        glutPassiveMotionFunc(mis_pauza);
+            glutKeyboardFunc(pauza_tastatura);
+            glutMouseFunc(pauza_klik);
+            glutKeyboardUpFunc(pauza_keyup);
+            glutDisplayFunc(pauza_render);
+    }
     keys[key]=false;
 }
 
 void meni_tastatura(unsigned char taster, int x, int y){
-    if(taster=='1'){
-        tekuci_nivo=new Nivo(32,32);
-        glutKeyboardFunc(tastatura_editor);
-        glutMouseFunc(mis);
-        glutMotionFunc(mis_pomera);
-        glutDisplayFunc(render_func_editor);
+    
+}
+
+void meni_mis(int x,int y){
+    azuriraj_mis(x,y,0);
+}
+
+void meni_klik(int klik,int stanje,int x,int y){
+    if(stanje==GLUT_DOWN && klik==GLUT_LEFT_BUTTON){
+        azuriraj_mis(x,y,1);
     }
-    if(taster=='2'){
+    if(stanje==GLUT_UP && klik==GLUT_LEFT_BUTTON){
+
+        azuriraj_mis(x,y,0);
+    }
+}
+void meni_render(){
+    glClear(GL_COLOR_BUFFER_BIT);
+    glClearColor(55/256.0f,54/256.0f,56/256.0f,1);
+    glLoadIdentity();
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(0,1920,0,1080);
+    glMatrixMode(GL_MODELVIEW);
+    glColor3f(1,0,0);
+    glDisable(GL_DEPTH_TEST);
+    frejm(710,100,400,800);
+    if(dugme("Igraj",730,790,360,50)){
         neprijatelji.clear();
         nivo_granate.clear();
         glutSetCursor(GLUT_CURSOR_NONE);
@@ -378,9 +521,95 @@ void meni_tastatura(unsigned char taster, int x, int y){
         glutKeyboardUpFunc(keyup);
         glutDisplayFunc(igra_render);
     }
+    if(dugme("Napravi nivo",730,730,360,50)){
+        tekuci_nivo=new Nivo(32,32);
+        glutKeyboardFunc(tastatura_editor);
+        glutMouseFunc(mis);
+        glutMotionFunc(mis_pomera);
+        glutDisplayFunc(render_func_editor);
+
+    }
+    if(dugme("Izmeni nivo",730,670,360,50)){
+        delete(tekuci_nivo);
+        tekuci_nivo=tekuci_nivo->ucitaj_teren("1.nivo");
+        glutKeyboardFunc(tastatura_editor);
+        glutMouseFunc(mis);
+        glutMotionFunc(mis_pomera);
+        glutDisplayFunc(render_func_editor);
+    }
+    if(dugme("Izadji :'(",730,120,360,50)){
+        exit(0);
+    }
+    glEnable(GL_DEPTH_TEST);
+    glutSwapBuffers();
+    glutPostRedisplay();
+    glFlush();
+    
 }
 
 
+void pauza_render(){
+
+        glutSetCursor(GLUT_CURSOR_LEFT_ARROW);
+        
+        glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+        glClearColor(55/256.0f,54/256.0f,56/256.0f,1);
+        glLoadIdentity();
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        gluOrtho2D(0,1920,0,1080);
+        glMatrixMode(GL_MODELVIEW);
+        glDisable(GL_DEPTH_TEST);
+        frejm(710,100,400,800);
+        if(dugme("nastavi",735,830,350,50)){
+            glutPassiveMotionFunc(mis_igra);
+            glutKeyboardFunc(igra_tastatura);
+            glutMouseFunc(klik);
+            glutKeyboardUpFunc(keyup);
+            glutDisplayFunc(igra_render);
+        }
+        if(dugme("nazad u meni",735,210,350,50)){
+            glutKeyboardFunc(meni_tastatura);
+            glutPassiveMotionFunc(meni_mis);
+            glutMouseFunc(meni_klik);
+            glutDisplayFunc(meni_render);
+        }
+        if(dugme("izadji",735,130,350,50)){
+            exit(0);
+        }
+
+         glutSwapBuffers();
+        glutPostRedisplay();
+        glFlush();
+}
+
+void pauza_klik(int klik,int stanje,int x,int y){
+    if(klik==GLUT_LEFT_BUTTON && stanje==GLUT_DOWN){
+        azuriraj_mis(x,y,1);
+    }
+}
+
+void mis_pauza(int x,int y){
+    
+    azuriraj_mis(x,y,0);
+}
+
+void pauza_tastatura(unsigned char taster, int x, int y){
+    keys[taster]=true;
+    
+}
+
+void pauza_keyup(unsigned char key,int x,int y){
+    if(keys[27]==true && key==27){
+        keys[key]=false;
+        glutPassiveMotionFunc(mis_igra);
+            glutKeyboardFunc(igra_tastatura);
+            glutMouseFunc(klik);
+            glutKeyboardUpFunc(keyup);
+            glutDisplayFunc(igra_render);
+    }
+    keys[key]=false;
+}
 
 int main(int argc,char *argv[]){
     glutInit(&argc,argv);
@@ -390,7 +619,14 @@ int main(int argc,char *argv[]){
     glutFullScreen();
     init_GL();
     glutIgnoreKeyRepeat(0);
+    glutReshapeFunc(azuriraj_dimenzije);
     glutKeyboardFunc(meni_tastatura);
+    glutPassiveMotionFunc(meni_mis);
+    glutMouseFunc(meni_klik);
+    trava_slika=ucitaj_sliku("../resorsi/texture/trava.bmp");
+    zid_slika=ucitaj_sliku("../resorsi/texture/wall.bmp");
+    voda_slika=ucitaj_sliku("../resorsi/texture/voda.bmp");
+    drvo_slika=ucitaj_sliku("../resorsi/texture/drvo.bmp");
     glutDisplayFunc(meni_render);
     glutMainLoop();
     return 0;

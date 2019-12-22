@@ -1,5 +1,10 @@
 #include "Nivo.h"
 
+ unsigned int trava_slika;
+ unsigned int zid_slika;
+ unsigned int drvo_slika;
+ unsigned int voda_slika;
+
 bool prikazi_cvorove=false;
 
 vector<unique_ptr<Metak>> nivo_granate;
@@ -32,22 +37,34 @@ void Plocica::postavi(int x,int y,bool vrednost){
 
 //FUNKCIJA KOJA CRTA PLOCICE I DATE TACKE ZA KRETANJE U SKLADU SA TIPOM PLOCICE
 void Plocica::crtaj(){
-    if(tip==ZEMLJA)
-    glColor3f(0,0.78,0);
-    if(tip==ZID)
-    glColor3f(0.3,0.31,0.28);
-    if(tip==VODA)
-    glColor3f(0,0,0.76);
-    if(tip==DRVO)
-    glColor3f(0.2,0.1,0.1);
+    if(tip==ZEMLJA){
+        glColor3f(1,1,1);
+    glBindTexture(GL_TEXTURE_2D,trava_slika);
+    }
+    if(tip==ZID){
+        glColor3f(1,1,1);
+    glBindTexture(GL_TEXTURE_2D,zid_slika);
+    }
+    if(tip==VODA){
+        glColor3f(1,1,1);
+    glBindTexture(GL_TEXTURE_2D,voda_slika);
+    }
+    if(tip==DRVO){
+        glColor3f(1,1,1);
+    glBindTexture(GL_TEXTURE_2D,drvo_slika);
+    }
     if(tip==Ig)
     glColor3f(0.3,0.38,0.8);
     if(tip==Nep)
     glColor3f(1,0,0);
     glBegin(GL_QUADS);
+    glTexCoord2f(0,1);
     glVertex3f(temena[0][0].first.first,0,temena[0][0].first.second);
+    glTexCoord2f(1,1);
     glVertex3f(temena[0][2].first.first,0,temena[0][2].first.second);
+    glTexCoord2f(1,0);
     glVertex3f(temena[2][2].first.first,0,temena[2][2].first.second);
+    glTexCoord2f(0,0);
     glVertex3f(temena[2][0].first.first,0,temena[2][0].first.second);
     glEnd();
     if(hodljiv && prikazi_cvorove ){
@@ -61,6 +78,7 @@ void Plocica::crtaj(){
             glEnd();
         }
     }
+    glBindTexture(GL_TEXTURE_2D,0);
 }
 
 void Plocica::postavi_tip(int tip){

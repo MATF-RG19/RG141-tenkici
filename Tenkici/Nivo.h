@@ -24,6 +24,10 @@ using namespace std;
 #define Nep 5
 #define Ig 6
 
+extern unsigned int trava_slika;
+extern unsigned int zid_slika;
+extern unsigned int drvo_slika;
+extern unsigned int voda_slika;
 
 struct Cvor{
     int i;
