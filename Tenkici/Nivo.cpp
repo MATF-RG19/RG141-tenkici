@@ -392,7 +392,7 @@ pair<int,int> Nivo::vrati_indexe_od_koord(float x,float z){
      return teren[i][j];
  }
 void Plocica::crtaj_igra(){
-    if(tip==ZEMLJA){
+    if(tip==ZEMLJA || tip==5 || tip==6){
     glColor3f(1,1,1);
     glBindTexture(GL_TEXTURE_2D,trava_text);
     }
