@@ -1,5 +1,5 @@
 #include "Neprijatelj.h"
-
+Model nep_model;
 
 Neprijatelj::Neprijatelj(float x,float z){
     this->x=x;
@@ -13,44 +13,32 @@ float dis(float x,float y,float x_,float y_){
 void Neprijatelj::crtaj(){
     glLineWidth(2);
     glPushMatrix();
-    glTranslatef(x,0,z);
+    glTranslatef(x,0.3,z);
     glRotatef(angle,0,1,0);
-    glColor3f(0.3,0.1,0.4);
-    glutSolidCube(0.8);
-    glColor3f(0,0,0);
-    glutWireCube(0.8);
+    glScalef(0.6,0.6,0.6);
+    crtaj_objekat(nep_model.objekti[1]);
     glPopMatrix();
     glPushMatrix();
-    glTranslatef(x,0.5,z);
+    glTranslatef(x,0.3,z);
     glRotatef(angle_up,0,1,0);
-    glColor3f(0.3,0.1,0.4);
-    glutSolidCube(0.5);
-    glutSolidCylinder(0.1,0.8,10,10);
-    glColor3f(0,0,0);
-    glutWireCube(0.5);
-    glutWireCylinder(0.1,0.8,10,10);
+    glScalef(0.6,0.6,0.6);
+    crtaj_objekat(nep_model.objekti[0]);
     glPopMatrix();
 }
 
 void Neprijatelj::crtaj_mrtvog(){
     glLineWidth(2);
     glPushMatrix();
-    glTranslatef(x,0,z);
+    glTranslatef(x,0.3,z);
     glRotatef(angle,0,1,0);
-    glColor3f(0.1,0.1,0.1);
-    glutSolidCube(0.8);
-    glColor3f(0,0,0);
-    glutWireCube(0.8);
+    glScalef(0.6,0.6,0.6);
+    crtaj_objekat(nep_model.objekti[1]);
     glPopMatrix();
     glPushMatrix();
-    glTranslatef(x,0.5,z);
+    glTranslatef(x,0.3,z);
     glRotatef(angle_up,0,1,0.2);
-    glColor3f(0.1,0.1,0.1);
-    glutSolidCube(0.5);
-    glutSolidCylinder(0.1,0.8,10,10);
-    glColor3f(0,0,0);
-    glutWireCube(0.5);
-    glutWireCylinder(0.1,0.8,10,10);
+    glScalef(0.6,0.6,0.6);
+    crtaj_objekat(nep_model.objekti[0]);
     glPopMatrix();
 }
 
@@ -73,7 +61,7 @@ void pomeri_ka_tacki(float &px,float &pz,float cx,float cz){
     px+=(tx/norm)*0.05;
     pz+=(tz/norm)*0.05;
 }
-
+//Radi bfs ka cilju , ako je igrac tu takodje rotira gornji deo i puca ako je rotiran dovoljno
 void Neprijatelj::radi_nesto(Nivo *nivo,pair<float,float> igrac){
     if(sec<brzina_napada)
         sec++;

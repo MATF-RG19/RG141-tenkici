@@ -10,6 +10,7 @@
 #include <GL/freeglut.h>
 #include <set>
 #include <memory>
+#include "objekt.h"
 
 using namespace std;
 
@@ -28,6 +29,9 @@ extern unsigned int trava_slika;
 extern unsigned int zid_slika;
 extern unsigned int drvo_slika;
 extern unsigned int voda_slika;
+extern unsigned int trava_text;
+extern unsigned int voda_text;
+
 
 struct Cvor{
     int i;
@@ -35,6 +39,9 @@ struct Cvor{
     float x_pos;
     float z_pos;
 };
+
+extern Model drvo_model;
+extern Model zid_model;
 
 //Sadrzi podatak o jednoj plocici njen tip kao i tacke za kretanje po njoj
 class Plocica{
@@ -78,34 +85,47 @@ public:
     int n,m;
 };
 
+extern Model igrac_tenk;
+
 class Igrac{
     public:
      float x, z;
      float px, pz;
      float cev_x;
      float cev_z;
-    int sec=100;
-    int brzina_napada=100;
+    int sec=70;
+    int brzina_napada=70;
      int health=100;
      void crtaj(){
+         glEnable(GL_DEPTH_TEST);
+         glColor3f(1,1,1);
          if(sec<brzina_napada)sec++;
+        glEnable(GL_LIGHTING);
+        glEnable(GL_LIGHT0);
+        GLfloat ni[]={-cev_x,3,-cev_z,0};
+        
+        glLightfv(GL_LIGHT0,GL_POSITION,ni);
+
+
+        glEnable(GL_LIGHT1);
+        GLfloat ni1[]={x,1,z,1};
+        GLfloat li1[]={1,1,1,1};
+        glLightfv(GL_LIGHT1,GL_POSITION,ni1);
+        glLightfv(GL_LIGHT1,GL_DIFFUSE,li1);
+        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+
         glPushMatrix();
-         glColor3f(1,0,0);
-         glTranslatef(x,0,z);
-         glRotatef((-angle*180)/3.14,0,1,0);
-         glutSolidCube(0.8);
-         glColor3f(0,0,0);
-         glutWireCube(0.8);
+         glTranslatef(x,0.25,z);
+         glRotatef((-angle*180)/3.14+90,0,1,0);
+         glScalef(0.5,0.5,0.5);
+         crtaj_objekat(igrac_tenk.objekti[1]);
         glPopMatrix();
         glPushMatrix();
-         glTranslatef(x,0.5,z);
+         glTranslatef(x,0.25,z);
          glRotatef((-angle_up*180)/3.14+90,0,1,0);
-         glColor3f(1,0,0);
-         glutSolidCube(0.5);
-         glutSolidCylinder(0.1,0.8,10,10);
-         glColor3f(0,0,0);
-         glutWireCube(0.5);
-         glutWireCylinder(0.1,0.8,10,10);
+         glScalef(0.5,0.5,0.5);
+         crtaj_objekat(igrac_tenk.objekti[0]);
         glPopMatrix();
      }
      void pomeri_napred(){
@@ -144,15 +164,23 @@ bool nas_metak;
      this->z=z;
  }
  void Crtaj(){
+     
     glPushMatrix();
+        GLfloat niz[]={0.9,0.9,0.9,1};
+        glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,niz);
         if(nas_metak)
-        glColor3f(1,0,0);
-        else
+        glColor3f(0.9,0.9,0.9);
+        else{
+            GLfloat niz1[]={0.0,0.0,0.0,1};
+        glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,niz1);
         glColor3f(0,0,0);
-        glTranslatef(x,0.6f,z);
+        }
+        glTranslatef(x,0.3f,z);
+        glScalef(0.7,0.7,0.7);
         glutSolidSphere(0.1,10,10);
         x+=dx*0.2;
         z+=dz*0.2;
+        glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,niz);
     glPopMatrix();
  }
 };

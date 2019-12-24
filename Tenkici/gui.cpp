@@ -6,6 +6,9 @@ int m_click;
 int p_visina;
 int p_sirina;
 
+//funkcije za gui zasnivaju sa na klasicnom crtanju i azuriranju sa glavne petlje
+//ako je mis kliknut da se desi dogadjaj
+
 bool provera(int x,int y,int sirina,int visina){
     return (m_x<=x+sirina && m_x>=x) && (m_y<=y+visina && m_y>=y); 
 }

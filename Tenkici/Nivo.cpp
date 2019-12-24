@@ -4,8 +4,14 @@
  unsigned int zid_slika;
  unsigned int drvo_slika;
  unsigned int voda_slika;
+ unsigned int trava_text;
+ unsigned int voda_text;
+
+Model drvo_model;
+Model zid_model;
 
 bool prikazi_cvorove=false;
+Model igrac_tenk;
 
 vector<unique_ptr<Metak>> nivo_granate;
 
@@ -386,49 +392,46 @@ pair<int,int> Nivo::vrati_indexe_od_koord(float x,float z){
      return teren[i][j];
  }
 void Plocica::crtaj_igra(){
-    if(tip==ZEMLJA)
-    glColor3ub(34,139,34);
-    if(tip==ZID){
-    glLineWidth(2);
-    glPushMatrix();
-    glColor3ub(105,105,105);
-    glTranslatef(temena[1][1].first.first,0,temena[1][1].first.second);
-    glutSolidCube(1);
-    glColor3f(0,0,0);
-    glutWireCube(1);
-    glPopMatrix();
-    glPushMatrix();
-    glColor3ub(105,105,105);
-    glTranslatef(temena[1][1].first.first,1,temena[1][1].first.second);
-    glutSolidCube(1);
-    glColor3f(0,0,0);
-    glutWireCube(1);
-    glPopMatrix();
-    glColor3f(0.3,0.31,0.28);
-    glLineWidth(1);
+    if(tip==ZEMLJA){
+    glColor3f(1,1,1);
+    glBindTexture(GL_TEXTURE_2D,trava_text);
     }
-    if(tip==VODA)
-    glColor3ub(100,149,237);
+    if(tip==ZID){
+    glPushMatrix();
+    glColor3f(1,1,1);
+    glTranslatef(temena[1][1].first.first,0,temena[1][1].first.second);
+    glScalef(0.5,0.5,0.5);
+    crtaj_model(zid_model);
+    glPopMatrix();
+    }
+    if(tip==VODA){
+    glColor3f(1,1,1);
+    glBindTexture(GL_TEXTURE_2D,voda_text);
+    }
     if(tip==DRVO){
+    glColor3f(1,1,1);
     glPushMatrix();
-    glTranslatef(temena[1][1].first.first,1.5f,temena[1][1].first.second);
-    glColor3ub(85,107,47);
-    glutSolidSphere(0.6,20,20);
+    glTranslatef(temena[1][1].first.first,0,temena[1][1].first.second);
+    glScalef(3,3,3);
+    crtaj_model(drvo_model);
     glPopMatrix();
-    glColor3f(0.2,0.1,0.1);
-    glPushMatrix();
-    glTranslatef(temena[1][1].first.first,1,temena[1][1].first.second);
-    glRotatef(90,1,0,0);
-    glutSolidCylinder(0.3,1.5,20,20);
-    glPopMatrix();
-    glColor3ub(34,139,34);
+    glBindTexture(GL_TEXTURE_2D,trava_text);
     }
     glBegin(GL_QUADS);
+    glNormal3f(0,1,0);
+    glTexCoord2f(0,1);
     glVertex3f(temena[0][0].first.first,0,temena[0][0].first.second);
+    glNormal3f(0,1,0);
+    glTexCoord2f(1,1);
     glVertex3f(temena[0][2].first.first,0,temena[0][2].first.second);
+    glNormal3f(0,1,0);
+    glTexCoord2f(1,0);
     glVertex3f(temena[2][2].first.first,0,temena[2][2].first.second);
+    glNormal3f(0,1,0);
+    glTexCoord2f(0,0);
     glVertex3f(temena[2][0].first.first,0,temena[2][0].first.second);
     glEnd();
+    glBindTexture(GL_TEXTURE_2D,0);
 }
 
  void Nivo::crtaj_teren_igra(){
@@ -441,6 +444,7 @@ float udaljenost(float x,float y,float x_,float y_){
     return sqrt((x-x_)*(x-x_)+(y_-y)*(y_-y));
 }
 
+//gleda cvorove unutar suseda jednog indeksa za koliziju preko sfera
 bool Nivo::proveri_koliziju(float x,float z){
     pair<int,int> tek_koord=vrati_indexe_od_koord(x,z);
     if(tek_koord==make_pair(-1,-1))

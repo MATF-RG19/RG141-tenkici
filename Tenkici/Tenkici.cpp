@@ -9,7 +9,7 @@ bool pauza=false;
 
 float cam_pos_x=0;
 float cam_pos_y=-19.8;
-float cam_pos_z=0;
+float cam_pos_z=2;
 float cam_f_y=1;
 int mouse_click=0;
 
@@ -40,6 +40,7 @@ float cam_igra_z=-5;
 
 Igrac *tekuci_igrac;
 
+Model mod;
 
 void meni_tastatura(unsigned char taster, int x, int y);
 
@@ -219,8 +220,9 @@ void init_GL(){
     
 }
 
-
+//funkcija za crtanje editora nivoa
 void render_func_editor(){
+    glDisable(GL_LIGHTING);
     glLoadIdentity();
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -309,12 +311,19 @@ void render_func_editor(){
     glFlush();
 }
 
+void stoperica_za_meni(int x){
+    glutKeyboardFunc(meni_tastatura);
+    glutPassiveMotionFunc(meni_mis);
+    glutMouseFunc(meni_klik);
+    glutDisplayFunc(meni_render);
+}
 
 
+ //Funkcija za crtanje glavne igre  
 void igra_render(){
 
     
-        glutSetCursor(GLUT_CURSOR_NONE);
+        
     if(keys['w']==true){
         if(tekuci_nivo->proveri_koliziju(tekuci_igrac->x+tekuci_igrac->px,
         tekuci_igrac->pz+tekuci_igrac->z))
@@ -342,7 +351,6 @@ void igra_render(){
     glClearColor(135/256.0f,206/256.0f,235/256.0f,1);
 
     
-    
     glLoadIdentity();
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -350,12 +358,44 @@ void igra_render(){
     glMatrixMode(GL_MODELVIEW);
 
     glPushMatrix();
+
+
     cam_igra_x=2*cos(tekuci_igrac->angle_up+3.14);
     cam_igra_z=2*sin(tekuci_igrac->angle_up+3.14);
     gluLookAt(tekuci_igrac->x+cam_igra_x,2,tekuci_igrac->z+cam_igra_z,
-    tekuci_igrac->x+2*tekuci_igrac->cev_x,0,tekuci_igrac->z+2*tekuci_igrac->cev_z,
+    tekuci_igrac->x+tekuci_igrac->cev_x,0,tekuci_igrac->z+tekuci_igrac->cev_z,
     0,1,0
     );
+    for(int i=0;i<tekuci_nivo->n;i++)
+        {
+            glPushMatrix();
+            glTranslatef(tekuci_nivo->teren[i][0]->temena[1][1].first.first-1
+            ,0,tekuci_nivo->teren[i][0]->temena[1][1].first.second);
+            glScalef(0.5,0.5,0.5);
+            crtaj_model(zid_model);
+            glPopMatrix();
+
+            glPushMatrix();
+            glTranslatef(tekuci_nivo->teren[tekuci_nivo->n-1][i]->temena[1][1].first.first
+            ,0,tekuci_nivo->teren[tekuci_nivo->n-1][i]->temena[1][1].first.second-1);
+            glScalef(0.5,0.5,0.5);
+            crtaj_model(zid_model);
+            glPopMatrix();
+
+            glPushMatrix();
+            glTranslatef(tekuci_nivo->teren[i][tekuci_nivo->n-1]->temena[1][1].first.first+1
+            ,0,tekuci_nivo->teren[i][tekuci_nivo->n-1]->temena[1][1].first.second);
+            glScalef(0.5,0.5,0.5);
+            crtaj_model(zid_model);
+            glPopMatrix();
+
+            glPushMatrix();
+            glTranslatef(tekuci_nivo->teren[0][i]->temena[1][1].first.first
+            ,0,tekuci_nivo->teren[0][i]->temena[1][1].first.second+1);
+            glScalef(0.5,0.5,0.5);
+            crtaj_model(zid_model);
+            glPopMatrix();
+        }
     tekuci_nivo->crtaj_teren_igra();  
     tekuci_igrac->crtaj();
     glLineWidth(10);
@@ -363,10 +403,9 @@ void igra_render(){
     if(nep->helti>0){
     nep->radi_nesto(tekuci_nivo,make_pair(tekuci_igrac->x,tekuci_igrac->z));
     nep->crtaj();
-
+    glDisable(GL_LIGHTING);
     glPushMatrix();
-   
-    glTranslatef(nep->x,1.25f,nep->z);
+    glTranslatef(nep->x,1.0f,nep->z);
     glRotatef(-tekuci_igrac->angle_up*180/3.14+90,0,1,0);
     glScalef(1,0.1,1);
     glTranslatef(0.5,0,0);
@@ -386,7 +425,7 @@ void igra_render(){
     glVertex3f(0,1,0);
     glVertex3f(0,0,0);
     glEnd();
-
+    glEnable(GL_LIGHTING);
     glPopMatrix();
     } else nep->crtaj_mrtvog();
     }
@@ -396,7 +435,9 @@ void igra_render(){
         nivo_granate.erase(it);
     }
     //KOD ZA GUI
+    
     glPopMatrix();
+    glDisable(GL_LIGHTING);
 
     glLoadIdentity();
     glMatrixMode(GL_PROJECTION);
@@ -405,24 +446,25 @@ void igra_render(){
     glMatrixMode(GL_MODELVIEW);
     glDisable(GL_DEPTH_TEST);
     helt_bar(0,0,300,40,100,tekuci_igrac->health);
-    
-    glEnable(GL_DEPTH_TEST);
-
 
     if(tekuci_igrac->health<=0){
-        cout<<"Izgubili ste"<<endl;
-        exit(0);
+        frejm(1920/2-150,1080/2-100,300,200);
+        label("Gubitak",1920/2-100,1080/2-50,200,100);
+        glutSetCursor(GLUT_CURSOR_LEFT_ARROW);
+        glutTimerFunc(1500,stoperica_za_meni,0);
     }
     int br_zivih_nep=neprijatelji.size();
     for(Neprijatelj *n:neprijatelji)
         if(n->helti<=0)
         br_zivih_nep--;
     if(br_zivih_nep==0){
-        cout<<"Pobedili ste"<<endl;
-        exit(0);
+        frejm(1920/2-150,1080/2-100,300,200);
+        label("Pobeda",1920/2-100,1080/2-50,200,100);
+        glutSetCursor(GLUT_CURSOR_LEFT_ARROW);
+        glutTimerFunc(1500,stoperica_za_meni,0);
         }
     
-
+    glEnable(GL_DEPTH_TEST);
 
         glutSwapBuffers();
         glutPostRedisplay();
@@ -442,10 +484,14 @@ void klik(int klik,int stanje,int x,int y){
 void mis_igra(int x,int y){
     int razlika=x-mouse_x;
     mouse_x=x;
+    
     if(razlika>0)
         tekuci_igrac->angle_up+=0.05f;
     if(razlika<0) tekuci_igrac->angle_up-=0.05f;
-    
+    if(razlika==0){
+    glutWarpPointer(1920/2,1080/2);
+        mouse_x=1920/2;
+    }
     azuriraj_mis(x,y,0);
 }
 
@@ -471,6 +517,8 @@ void meni_tastatura(unsigned char taster, int x, int y){
     
 }
 
+
+
 void meni_mis(int x,int y){
     azuriraj_mis(x,y,0);
 }
@@ -484,7 +532,9 @@ void meni_klik(int klik,int stanje,int x,int y){
         azuriraj_mis(x,y,0);
     }
 }
+//Iscrtavanje glavnog menija
 void meni_render(){
+    glDisable(GL_LIGHTING);
     glClear(GL_COLOR_BUFFER_BIT);
     glClearColor(55/256.0f,54/256.0f,56/256.0f,1);
     glLoadIdentity();
@@ -547,9 +597,9 @@ void meni_render(){
     
 }
 
-
+//Iscrtavanje u slucaju pauziranja
 void pauza_render(){
-
+        glDisable(GL_LIGHTING);
         glutSetCursor(GLUT_CURSOR_LEFT_ARROW);
         
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
@@ -610,7 +660,7 @@ void pauza_keyup(unsigned char key,int x,int y){
     }
     keys[key]=false;
 }
-
+//Inicijalizujemo pocetne modele i resorse sa spoljasnje memorije
 int main(int argc,char *argv[]){
     glutInit(&argc,argv);
     glutInitWindowSize(1920,1080);
@@ -623,10 +673,22 @@ int main(int argc,char *argv[]){
     glutKeyboardFunc(meni_tastatura);
     glutPassiveMotionFunc(meni_mis);
     glutMouseFunc(meni_klik);
-    trava_slika=ucitaj_sliku("../resorsi/texture/trava.bmp");
-    zid_slika=ucitaj_sliku("../resorsi/texture/wall.bmp");
-    voda_slika=ucitaj_sliku("../resorsi/texture/voda.bmp");
-    drvo_slika=ucitaj_sliku("../resorsi/texture/drvo.bmp");
+    trava_slika=ucitaj_sliku1("../resorsi/texture/trava.bmp");
+    zid_slika=ucitaj_sliku1("../resorsi/texture/wall.bmp");
+    voda_slika=ucitaj_sliku1("../resorsi/texture/voda.bmp");
+    drvo_slika=ucitaj_sliku1("../resorsi/texture/drvo.bmp");
+    igrac_tenk=ucitaj_obj_fajl("../resorsi/modeli/tenk.obj");
+    igrac_tenk.objekti[0].materiali[0].tex_id=ucitaj_sliku("../resorsi/texture/Kupola_zelena.bmp");
+    igrac_tenk.objekti[1].materiali[0].tex_id=ucitaj_sliku("../resorsi/texture/Tenk_telo.bmp");
+    igrac_tenk.objekti[1].materiali[1].tex_id=ucitaj_sliku("../resorsi/texture/Gusenice.bmp");
+    nep_model=igrac_tenk;
+    drvo_model=ucitaj_obj_fajl("../resorsi/modeli/drvo2.obj");
+    drvo_model.objekti[0].materiali[1].tex_id=ucitaj_sliku("../resorsi/texture/Drvo_tex.bmp");
+    drvo_model.objekti[0].materiali[0].tex_id=ucitaj_sliku("../resorsi/texture/Lisce.bmp");
+    zid_model=ucitaj_obj_fajl("../resorsi/modeli/zid.obj");
+    zid_model.objekti[0].materiali[0].tex_id=ucitaj_sliku("../resorsi/texture/zid.bmp");
+    trava_text=ucitaj_sliku("../resorsi/texture/trava3.bmp");
+    voda_text=ucitaj_sliku("../resorsi/texture/vodat.bmp");
     glutDisplayFunc(meni_render);
     glutMainLoop();
     return 0;

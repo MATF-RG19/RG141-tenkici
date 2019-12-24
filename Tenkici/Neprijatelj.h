@@ -10,6 +10,7 @@
 #include <GL/freeglut.h>
 #include<queue>
 #include "Nivo.h"
+#include "objekt.h"
 
 #ifndef NEPRIJATELJ
 #define NEPRIJATELJ
@@ -17,6 +18,8 @@
 using namespace std;
 #define Setanje 0
 #define Napad 1
+
+extern Model nep_model;
 
 
 class Neprijatelj{
