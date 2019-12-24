@@ -12,14 +12,6 @@ zatim izvrsiti:
   Napomena u editoru je potrebno postaviti igraca na neku poziciju da bi radila igra
 
 
-#### Kontrole za meni:
-
-| Taster      | Funkcija |
-| ----------- | ----------- |
-| **1**       | Pokreni editor nivoa       |
-| **2**   | Pokreni 1.nivo (mora da postoji fajl)        |
-
-
 #### Kontrole za editor:
 
 | Taster      | Funkcija |
