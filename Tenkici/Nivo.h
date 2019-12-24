@@ -86,7 +86,7 @@ public:
 };
 
 extern Model igrac_tenk;
-
+extern pair<int,int> tek_igrac;
 class Igrac{
     public:
      float x, z;

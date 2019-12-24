@@ -220,6 +220,12 @@ void init_GL(){
     
 }
 
+bool upozorenje=false;
+
+void stop_up(int x){
+    upozorenje=false;
+}
+
 //funkcija za crtanje editora nivoa
 void render_func_editor(){
     glDisable(GL_LIGHTING);
@@ -295,14 +301,24 @@ void render_func_editor(){
         if(dugme_manji("+",1920-125,825-350,50,25))
             if(select_nivo<10)
             select_nivo++;
-    if(dugme_manji("sacuvaj",1920-175,825-450,150,50))
+    if(dugme_manji("sacuvaj",1920-175,825-450,150,50)){
+        if(tek_igrac==make_pair(-1,-1) && !upozorenje){
+            upozorenje=true;
+            glutTimerFunc(1500,stop_up,0);
+        }
+        else
         tekuci_nivo->sacuvaj_teren();
+    }
     if(dugme_manji("izadji",1920-175,825-525,150,50)){
         
         glutKeyboardFunc(meni_tastatura);
         glutPassiveMotionFunc(meni_mis);
         glutMouseFunc(meni_klik);
         glutDisplayFunc(meni_render);
+    }
+    if(upozorenje){
+    frejm(1920/2-200,1080/2-50,400,100);
+    label("dodajte igraca!",1920/2-200,1080/2-50,400,100);
     }
     glEnable(GL_DEPTH_TEST);
 
@@ -358,7 +374,7 @@ void igra_render(){
     glMatrixMode(GL_MODELVIEW);
 
     glPushMatrix();
-
+    
 
     cam_igra_x=2*cos(tekuci_igrac->angle_up+3.14);
     cam_igra_z=2*sin(tekuci_igrac->angle_up+3.14);
@@ -398,7 +414,7 @@ void igra_render(){
         }
     tekuci_nivo->crtaj_teren_igra();  
     tekuci_igrac->crtaj();
-    glLineWidth(10);
+    glLineWidth(2);
     for(Neprijatelj* nep:neprijatelji){
     if(nep->helti>0){
     nep->radi_nesto(tekuci_nivo,make_pair(tekuci_igrac->x,tekuci_igrac->z));
@@ -488,10 +504,10 @@ void mis_igra(int x,int y){
     if(razlika>0)
         tekuci_igrac->angle_up+=0.05f;
     if(razlika<0) tekuci_igrac->angle_up-=0.05f;
-    if(razlika==0){
+    #if defined(WIN32) && !defined(UNIX)
     glutWarpPointer(1920/2,1080/2);
         mouse_x=1920/2;
-    }
+    #endif
     azuriraj_mis(x,y,0);
 }
 

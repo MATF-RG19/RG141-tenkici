@@ -88,6 +88,8 @@ void Plocica::crtaj(){
 }
 
 void Plocica::postavi_tip(int tip){
+    if(this->tip==6 && tip!=6)
+        tek_igrac=make_pair(-1,-1);
     this->tip=tip;
     if(tip!=ZEMLJA && tip!=Ig && tip!=Nep)
     this->hodljiv=false;
