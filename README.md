@@ -3,10 +3,11 @@ Tenkici
 
 Ovo je 3d igra u kojoj igrac kontrolise svog tenkica i ima ulogu da unisti sve neprijateljske tenkice kako bi zavrsio nivo.Ima mogucnost kreiranja svojih nivoa pomocu alatke nivo editora.
 
-Pokretanje:  
+**Pokretanje**:  
 Pozicionirati se u folder Tenkici zatim izvrsiti narednu komandu iz terminala:  
-g++ -std=c++14 Tenkici.cpp Nivo.cpp Neprijatelj.cpp gui.cpp objekt.cpp -lGL -lglut -lm -lGLU   
-za windows: g++ -std=c++14 Tenkici.cpp Nivo.cpp Neprijatelj.cpp gui.cpp objekt.cpp -lfreeglut -lopengl32 -lm -lglu32
+**g++ -std=c++14 Tenkici.cpp Nivo.cpp Neprijatelj.cpp gui.cpp objekt.cpp -lGL -lglut -lm -lGLU**  
+  
+za windows: *g++ -std=c++14 Tenkici.cpp Nivo.cpp Neprijatelj.cpp gui.cpp objekt.cpp -lfreeglut -lopengl32 -lm -lglu32**
   (Potreban je instaliran glut sa bibliotekama za windows da bi radilo)
  
 zatim izvrsiti:  
