@@ -1,5 +1,7 @@
 #include "objekt.h"
 
+
+//funkcija za citanje slike convertovane u bmp u gimpu redosled je drugaciji nego obicno pa su rgb permutovani
 unsigned int ucitaj_sliku(string putanja){
     FILE *file=fopen(putanja.c_str(),"rb");
     if(file==NULL){
@@ -16,7 +18,6 @@ unsigned int ucitaj_sliku(string putanja){
   fread(&djubre, 2, 1, file);
   fread(&djubre, 4, 1, file);
 
-  /* Ocitavaju se podaci drugog zaglavlja. */
   fread(&djubre, 4, 1, file);
   fread(&sirina, 4, 1, file);
   fread(&visina, 4, 1, file);
@@ -140,6 +141,7 @@ Model ucitaj_obj_fajl(string putanja){
   return tekuci;
 }
 
+//citanje za slika van gimpa
 unsigned int ucitaj_sliku1(string putanja){
   FILE *file=fopen(putanja.c_str(),"rb");
     if(file==NULL){

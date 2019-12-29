@@ -9,7 +9,7 @@ Neprijatelj::Neprijatelj(float x,float z){
 float dis(float x,float y,float x_,float y_){
     return sqrt((x-x_)*(x-x_)+(y_-y)*(y_-y));
 }
-
+//najobicnije crtanje tenka
 void Neprijatelj::crtaj(){
     glLineWidth(2);
     glPushMatrix();
@@ -26,6 +26,7 @@ void Neprijatelj::crtaj(){
     glPopMatrix();
 }
 
+//ako je tenk geknuo crtamo gao izlomljenog nekako
 void Neprijatelj::crtaj_mrtvog(){
     glLineWidth(2);
     glPushMatrix();
@@ -41,7 +42,7 @@ void Neprijatelj::crtaj_mrtvog(){
     crtaj_objekat(nep_model.objekti[0]);
     glPopMatrix();
 }
-
+//rotiramo kupolu ka tacki i vracamo true ako vec gleda tamo time postizemo da tenk gleda u igraca kad puca
 bool rotiraj_ka_tacki(float &ang,float px,float pz,float cx,float cz){
     float ang2=(atan2(cx-px,cz-pz)*180/3.14);
     if(abs(ang2-ang)<4){
@@ -53,7 +54,7 @@ bool rotiraj_ka_tacki(float &ang,float px,float pz,float cx,float cz){
     else ang-=1;
     return false;
 }
-
+//pomeramo tenk za normiran vektor pravca izmedju dve tacke
 void pomeri_ka_tacki(float &px,float &pz,float cx,float cz){
     float tx=cx-px;
     float tz=cz-pz;

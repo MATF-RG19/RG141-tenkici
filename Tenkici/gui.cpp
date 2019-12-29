@@ -9,6 +9,7 @@ int p_sirina;
 //funkcije za gui zasnivaju sa na klasicnom crtanju i azuriranju sa glavne petlje
 //ako je mis kliknut da se desi dogadjaj
 
+//provera da li je mis unutar pravougoanika 
 bool provera(int x,int y,int sirina,int visina){
     return (m_x<=x+sirina && m_x>=x) && (m_y<=y+visina && m_y>=y); 
 }
@@ -27,7 +28,7 @@ void azuriraj_dimenzije(int sirina,int visina){
     p_sirina=sirina;
     p_visina=visina;
 }
-
+//crtamo dugme tako sto proveravamo da li je mis kliknut i gde se nalazi u odnosu na to biramo stil kojim cemo crtati dugme
 bool dugme(string text,int x,int y,int sirina,int visina){
     if(provera(x,y,sirina,visina)){
         glColor3ub(47,46,48);
@@ -88,7 +89,7 @@ bool dugme(string text,int x,int y,int sirina,int visina){
         
     return false;
 }
-
+//crtamo samo pozadinu pravougaonik
 void frejm(int x,int y,int sirina,int visina){
     glColor3ub(44,41,42);
     glBegin(GL_QUADS);
@@ -106,7 +107,7 @@ void frejm(int x,int y,int sirina,int visina){
     glVertex2f(x,y);
     glEnd();
 }
-
+//crtamo dugme koje ima sliku
 bool dugme_slika(unsigned int slika,int x,int y,int sirina,int visina){
     
     glBindTexture(GL_TEXTURE_2D,slika);
@@ -159,7 +160,7 @@ bool dugme_slika(unsigned int slika,int x,int y,int sirina,int visina){
     glBindTexture(GL_TEXTURE_2D,0);
     return false;
 }
-
+//crtamo dugme sa manjim tekstom
 bool dugme_manji(string text,int x,int y,int sirina,int visina){
     if(provera(x,y,sirina,visina)){
         glColor3ub(47,46,48);
@@ -212,7 +213,7 @@ bool dugme_manji(string text,int x,int y,int sirina,int visina){
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18,*it);
     return false;
 }
-
+//Obican tekst sa pozadinom
 void label(string text,int x,int y,int sirina,int visina){
 
         glColor3ub(40,37,38);
@@ -240,6 +241,7 @@ void label(string text,int x,int y,int sirina,int visina){
     
 }
 
+//Crtamo healt bar tako sto crtamo do jednog dela zdrave helte pa do kraja crno tj stetu
 void helt_bar(int x,int y,int sirina,int visina,int max_x,int tek){
     glColor3f(1,0,0);
     float odnos=(float)tek/max_x;

@@ -25,6 +25,7 @@ using namespace std;
 #define Nep 5
 #define Ig 6
 
+//ID za texture
 extern unsigned int trava_slika;
 extern unsigned int zid_slika;
 extern unsigned int drvo_slika;
@@ -87,6 +88,7 @@ public:
 
 extern Model igrac_tenk;
 extern pair<int,int> tek_igrac;
+//Klasa za igraca crtamo model glavni deo kao i gornji tj kupolu od tenka i rotiramo ih u skladu
 class Igrac{
     public:
      float x, z;
@@ -102,22 +104,25 @@ class Igrac{
          if(sec<brzina_napada)sec++;
         glEnable(GL_LIGHTING);
         glEnable(GL_LIGHT0);
+        GLfloat li[]={0.5,0.5,0.5,1};
+        glLightfv(GL_LIGHT0,GL_DIFFUSE,li);
         GLfloat ni[]={-cev_x,3,-cev_z,0};
         
         glLightfv(GL_LIGHT0,GL_POSITION,ni);
 
 
-        glEnable(GL_LIGHT1);
-        GLfloat ni1[]={x,1,z,1};
-        GLfloat li1[]={1,1,1,1};
-        glLightfv(GL_LIGHT1,GL_POSITION,ni1);
-        glLightfv(GL_LIGHT1,GL_DIFFUSE,li1);
+        
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
 
         glPushMatrix();
          glTranslatef(x,0.25,z);
          glRotatef((-angle*180)/3.14+90,0,1,0);
+         glEnable(GL_LIGHT1);
+        GLfloat ni1[]={0,2,0,1};
+        GLfloat li1[]={1,1,1,1};
+        glLightfv(GL_LIGHT1,GL_POSITION,ni1);
+        glLightfv(GL_LIGHT1,GL_DIFFUSE,li1);
          glScalef(0.5,0.5,0.5);
          crtaj_objekat(igrac_tenk.objekti[1]);
         glPopMatrix();
@@ -163,6 +168,7 @@ bool nas_metak;
      this->x=x;
      this->z=z;
  }
+ //Crtamo projektil 
  void Crtaj(){
      
     glPushMatrix();
@@ -185,5 +191,6 @@ bool nas_metak;
  }
 };
 
+//svi projektili na nivou globalni niz
 extern vector<unique_ptr<Metak>> nivo_granate;
 #endif

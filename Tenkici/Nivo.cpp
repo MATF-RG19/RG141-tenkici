@@ -86,7 +86,7 @@ void Plocica::crtaj(){
     }
     glBindTexture(GL_TEXTURE_2D,0);
 }
-
+//postavljanja plocice na neki tip
 void Plocica::postavi_tip(int tip){
     if(this->tip==6 && tip!=6)
         tek_igrac=make_pair(-1,-1);
@@ -246,7 +246,7 @@ void Nivo::procesuj(){
         }
     }
 }
-
+//cuvamo teren u fajl
 void Nivo::sacuvaj_teren(){
     ofstream pisac;
     pisac.open("1.nivo");
@@ -256,7 +256,7 @@ void Nivo::sacuvaj_teren(){
     pisac<<"tip="<<teren[i][j]->daj_tip()<<endl;
     pisac.close();
 }
-
+//citamo teren iz tog fajla
 Nivo* Nivo::ucitaj_teren(string path){
     ifstream citac;
     citac.open(path);
@@ -315,7 +315,7 @@ vector<pair<float,float>> Nivo::bfs(pair<int,int> lok,pair<int,int> cilj){
         int i=vrh.first;
         int j=vrh.second;
 
-
+        //provera susednih cvorova
         if(i+1<n && zauzet[i+1][j]==false && teren[i+1][j]->jel_hodljiv()){
             zauzet[i+1][j]=true;
             roditelj[i+1][j]=make_pair(i,j);
@@ -380,7 +380,7 @@ vector<pair<float,float>> Nivo::bfs(pair<int,int> lok,pair<int,int> cilj){
         cout<<"NEMA PUTA"<<endl;
     return put;
 }
-
+//od float x z dobijamo indexe i j koji odgovaraju matrici 
 pair<int,int> Nivo::vrati_indexe_od_koord(float x,float z){
     int x_loc=floor(x)+n/2;
     int z_loc=(abs(floor(z)-m/2))-1;
@@ -393,12 +393,15 @@ pair<int,int> Nivo::vrati_indexe_od_koord(float x,float z){
  Plocica* Nivo::izaberi_plocicu(float i,float j){
      return teren[i][j];
  }
+ //funkcija za crtanje tokom igre
 void Plocica::crtaj_igra(){
     if(tip==ZEMLJA || tip==5 || tip==6){
     glColor3f(1,1,1);
+    //ako je plocica trava samo uzimamo tu teksturu
     glBindTexture(GL_TEXTURE_2D,trava_text);
     }
     if(tip==ZID){
+        //ako je plocica zid onda crtamo model zida
     glPushMatrix();
     glColor3f(1,1,1);
     glTranslatef(temena[1][1].first.first,0,temena[1][1].first.second);
@@ -408,9 +411,11 @@ void Plocica::crtaj_igra(){
     }
     if(tip==VODA){
     glColor3f(1,1,1);
+    //ako je plocica vod samo uzimamo tu teksturu
     glBindTexture(GL_TEXTURE_2D,voda_text);
     }
     if(tip==DRVO){
+        //ako je plocica drvo crtamo model drveta
     glColor3f(1,1,1);
     glPushMatrix();
     glTranslatef(temena[1][1].first.first,0,temena[1][1].first.second);
@@ -447,6 +452,7 @@ float udaljenost(float x,float y,float x_,float y_){
 }
 
 //gleda cvorove unutar suseda jednog indeksa za koliziju preko sfera
+//koriscenjem distance proverava da li je kolidiralo ili ne
 bool Nivo::proveri_koliziju(float x,float z){
     pair<int,int> tek_koord=vrati_indexe_od_koord(x,z);
     if(tek_koord==make_pair(-1,-1))
@@ -473,7 +479,8 @@ bool Nivo::proveri_koliziju(float x,float z){
     }
     return true;
 }
-
+//provera kolizije za metak moze se dodati da proverava malo vise vrednosti od centra plocice radi realnosti ali i ovo je
+//zadovoljavajuce
 bool Nivo::proveri_koliziju_metak(float x,float z){
     pair<int,int> tek_koord=vrati_indexe_od_koord(x,z);
     if(tek_koord==make_pair(-1,-1))

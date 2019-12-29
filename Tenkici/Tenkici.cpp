@@ -92,7 +92,7 @@ vector<pair<float,float>> put;
 float moj_distanca(float x,float y,float x_,float y_){
     return sqrt((x-x_)*(x-x_)+(y_-y)*(y_-y));
 }
-
+//kolizija metka sa igracem i skidanje helta kao i sa drugim objektima
 bool metak_kolizija(unique_ptr<Metak> &m){
     if(moj_distanca(tekuci_igrac->x,tekuci_igrac->z,m->x,m->z)<0.5f && m->nas_metak==false){
         tekuci_igrac->health-=20;
@@ -194,6 +194,7 @@ void mis(int dugme, int stanje, int x,int y){
     azuriraj_mis(x,y,1);
 }
 
+//funkcija koja se stalno izvrsava dok se mis pomera u editoru
 void mis_pomera(int x,int y){
     GLdouble farx,fary,farz;
     GLdouble nearx,neary,nearz;
@@ -222,6 +223,7 @@ void init_GL(){
 
 bool upozorenje=false;
 
+//on action funckija za pojavljivanje prozora za upozorenje
 void stop_up(int x){
     upozorenje=false;
 }
@@ -274,7 +276,7 @@ void render_func_editor(){
     glEnd();
     glPopMatrix();
 
-    //gki
+    //gki za editor
     glLoadIdentity();
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -326,7 +328,7 @@ void render_func_editor(){
     glutPostRedisplay();
     glFlush();
 }
-
+//on action funckija za meni
 void stoperica_za_meni(int x){
     glutKeyboardFunc(meni_tastatura);
     glutPassiveMotionFunc(meni_mis);
@@ -339,7 +341,7 @@ void stoperica_za_meni(int x){
 void igra_render(){
 
     
-        
+    //Gledamo koji taster je mapiran  
     if(keys['w']==true){
         if(tekuci_nivo->proveri_koliziju(tekuci_igrac->x+tekuci_igrac->px,
         tekuci_igrac->pz+tekuci_igrac->z))
@@ -382,6 +384,8 @@ void igra_render(){
     tekuci_igrac->x+tekuci_igrac->cev_x,0,tekuci_igrac->z+tekuci_igrac->cev_z,
     0,1,0
     );
+    glEnable(GL_LIGHTING);
+    //Crtamo matricu za nivo sa odgovarajucim modelima i elementima
     for(int i=0;i<tekuci_nivo->n;i++)
         {
             glPushMatrix();
@@ -420,6 +424,7 @@ void igra_render(){
     nep->radi_nesto(tekuci_nivo,make_pair(tekuci_igrac->x,tekuci_igrac->z));
     nep->crtaj();
     glDisable(GL_LIGHTING);
+    //Crtamo barove iznad neprijatelja koji helte prikazujue oni su bilbordi i rotiraju se sa kamerom
     glPushMatrix();
     glTranslatef(nep->x,1.0f,nep->z);
     glRotatef(-tekuci_igrac->angle_up*180/3.14+90,0,1,0);
@@ -445,13 +450,14 @@ void igra_render(){
     glPopMatrix();
     } else nep->crtaj_mrtvog();
     }
+    //Za svaku granatu crtamo je i gledamo koliziju ako je ima brisemo granatu 
     for(auto it=nivo_granate.begin();it<nivo_granate.end();it++){
         (*it)->Crtaj();
         if(metak_kolizija(*it)==true)
         nivo_granate.erase(it);
     }
     //KOD ZA GUI
-    
+    //prelazi se sa perspektive u ortografsku projekciju
     glPopMatrix();
     glDisable(GL_LIGHTING);
 
@@ -462,13 +468,15 @@ void igra_render(){
     glMatrixMode(GL_MODELVIEW);
     glDisable(GL_DEPTH_TEST);
     helt_bar(0,0,300,40,100,tekuci_igrac->health);
-
+    //ako su helti igraca manji od 0 ide se u ekran za gubitak
     if(tekuci_igrac->health<=0){
         frejm(1920/2-150,1080/2-100,300,200);
         label("Gubitak",1920/2-100,1080/2-50,200,100);
         glutSetCursor(GLUT_CURSOR_LEFT_ARROW);
         glutTimerFunc(1500,stoperica_za_meni,0);
     }
+    //linearna pretraga da se vidi koliko neprijatelja ima i da li je igrac pobedio
+    //moglo je efikasnije od linearne pretrage moglo je u O(1)
     int br_zivih_nep=neprijatelji.size();
     for(Neprijatelj *n:neprijatelji)
         if(n->helti<=0)
@@ -487,7 +495,7 @@ void igra_render(){
         glFlush();
     
 }
-
+//kada igrac klikne levi klik dodaje se njegov metak u niz granata mora da bude unique kako bi mogao da se brise pokazivac
 void klik(int klik,int stanje,int x,int y){
     if(klik==GLUT_LEFT_BUTTON && stanje==GLUT_DOWN && tekuci_igrac->sec==tekuci_igrac->brzina_napada){
         nivo_granate.push_back(make_unique<Metak>(tekuci_igrac->x+tekuci_igrac->cev_x,tekuci_igrac->z+tekuci_igrac->cev_z,tekuci_igrac->cev_x,tekuci_igrac->cev_z));
@@ -510,13 +518,14 @@ void mis_igra(int x,int y){
     #endif
     azuriraj_mis(x,y,0);
 }
-
+//Da bi moglo da se procesuje vise dugmica odjednom mapiramo sve u jedan niz
+//posto glut ne podrzava ovo nativno
 void igra_tastatura(unsigned char taster, int x, int y){
     
     keys[taster]=true;
     
 }
-
+//kada se oslobodi taster stavlja se vrednost na false ako je bio ESC postavljaju se vrednosti za pauzu
 void keyup(unsigned char key,int x,int y){
     if(keys[27]==true && key==27){
         keys[key]=false;
@@ -549,6 +558,7 @@ void meni_klik(int klik,int stanje,int x,int y){
     }
 }
 //Iscrtavanje glavnog menija
+//ide se u ortografsku projekciju velicine ekrana i crtaju gui elementi i procesuju zahtevi kroz on_mouse funkcije
 void meni_render(){
     glDisable(GL_LIGHTING);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -614,6 +624,8 @@ void meni_render(){
 }
 
 //Iscrtavanje u slucaju pauziranja
+//Vraca se kursor u normalu i crtaju elementi za meni tokom pauze
+//takodje se postavljaju funkcije za rad sa misem i tastaturem koji odgovaraju pauzi
 void pauza_render(){
         glDisable(GL_LIGHTING);
         glutSetCursor(GLUT_CURSOR_LEFT_ARROW);
@@ -627,6 +639,7 @@ void pauza_render(){
         glMatrixMode(GL_MODELVIEW);
         glDisable(GL_DEPTH_TEST);
         frejm(710,100,400,800);
+
         if(dugme("nastavi",735,830,350,50)){
             glutPassiveMotionFunc(mis_igra);
             glutKeyboardFunc(igra_tastatura);
@@ -676,7 +689,7 @@ void pauza_keyup(unsigned char key,int x,int y){
     }
     keys[key]=false;
 }
-//Inicijalizujemo pocetne modele i resorse sa spoljasnje memorije
+//Ulazenje u pocetni meni igre
 int main(int argc,char *argv[]){
     glutInit(&argc,argv);
     glutInitWindowSize(1920,1080);
@@ -689,6 +702,8 @@ int main(int argc,char *argv[]){
     glutKeyboardFunc(meni_tastatura);
     glutPassiveMotionFunc(meni_mis);
     glutMouseFunc(meni_klik);
+
+    //Inicijalno ucitavanje podataka
     trava_slika=ucitaj_sliku1("../resorsi/texture/trava.bmp");
     zid_slika=ucitaj_sliku1("../resorsi/texture/wall.bmp");
     voda_slika=ucitaj_sliku1("../resorsi/texture/voda.bmp");
